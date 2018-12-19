@@ -1,5 +1,5 @@
 # webgis_template
-
+create by vue cli3, with esri 2d map and cesium 3d map
 ## Project setup
 ```
 npm install
