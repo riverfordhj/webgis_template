@@ -7,7 +7,7 @@
 </template>
 
   <script>
-import { getData } from "@/api/tableTestData";
+import { getTableTestData } from "@/api/tableTestData";
 export default {
   data() {
     return {
@@ -19,8 +19,11 @@ export default {
   },
   methods: {
     getList() {
-      this.tableData = getData().tableData;
-    //   debugger;
+      // this.tableData = getTableTestData().tableData;
+      getTableTestData().then(reponse => {
+        debugger;
+        this.tableData = reponse.data.tableData;
+      });
     }
   }
 };

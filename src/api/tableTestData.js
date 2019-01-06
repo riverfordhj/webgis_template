@@ -1,3 +1,12 @@
+import request from '@/utils/request'
+
+export function getTableTestData() {
+    return request({
+      url: '/table/tabletestdata',
+      method: 'get'
+    })
+  }
+
 export function getData() {
     // debugger
     return {
