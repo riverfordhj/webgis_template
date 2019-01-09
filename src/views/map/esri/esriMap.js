@@ -6,6 +6,7 @@ export const createMap = function (esriLoader, options, self, yunnanJson) {
                 "esri/Viewpoint",
                 "esri/Graphic",
                 'esri/views/MapView',
+                "esri/layers/Layer",
                 "esri/layers/FeatureLayer",
                 "esri/layers/WebTileLayer",
                 "esri/layers/TileLayer",
@@ -18,6 +19,8 @@ export const createMap = function (esriLoader, options, self, yunnanJson) {
                 "esri/widgets/Compass",
                 "esri/widgets/Print",
                 "esri/core/urlUtils",
+                "esri/config",
+                "esri/portal/Portal"
             ], options)
         .then(
             ([
@@ -26,6 +29,7 @@ export const createMap = function (esriLoader, options, self, yunnanJson) {
                 Viewpoint,
                 Graphic,
                 MapView,
+                Layer,
                 FeatureLayer,
                 WebTileLayer,
                 TileLayer,
@@ -37,7 +41,9 @@ export const createMap = function (esriLoader, options, self, yunnanJson) {
                 Legend,
                 Compass,
                 Print,
-                urlUtils
+                urlUtils,
+                esriConfig,
+                Portal
             ]) => {
 
                 // urlUtils.addProxyRule({
@@ -117,7 +123,7 @@ export const createMap = function (esriLoader, options, self, yunnanJson) {
                     return [ESRIVectorBasemap, ESRIRasterBasemap, vecBasemap, imgBasemap, gray];
                 }
 
-                function ConstructYunnanmap() {
+                function ConstructYunnanLayerByJson() {
                     //云南json图层
                     var yunnanlayer = new GraphicsLayer({
                         title: "云南省界图层"
@@ -148,87 +154,115 @@ export const createMap = function (esriLoader, options, self, yunnanJson) {
                     return yunnanlayer;
                 }
 
-                const basemaps = ConstructBasemap();
+                function ConstructYunnanlayerByOnline(layerid, func) {
+                    esriConfig.portalUrl = "http://www.arcgisonline.cn/arcgis";
+                    var portal = new Portal(); // Defaults to www.arcgis.com
+                    portal.load().then(function () {
 
-                var yunnanlayer = ConstructYunnanmap();
+                        Layer.fromPortalItem({
+                                portalItem: { // autocasts as new PortalItem()
+                                    id: layerid,
+                                }
+                            }).then(initLayer)
+                            .catch(rejection);
+                    }); // Adds the layer to the map once it loads
+                    function initLayer(layer) {
+                        map.add(layer);
+                        // yunnanlayer = layer;
+                        // debugger
 
+                        layer.when(() => {
+                            if(func)
+                            func(layer);
+                        });
+                    }
+
+                    function rejection(error) {
+                        console.log("Layer failed to load: ", error);
+                    }
+                }
+
+                function InitWidget(layer) {
+                    self.view.goTo(layer.fullExtent);
+
+                    const homeWidget = new Home({
+                        view: self.view,
+                        viewpoint: new Viewpoint({
+                            targetGeometry: layer.fullExtent
+                        })
+                    });
+
+                    const basemapGallery = new BasemapGallery({
+                        view: self.view,
+                        container: document.createElement("div"),
+                        source: basemaps
+                    });
+    
+                    const bgExpand = new Expand({
+                        view: self.view,
+                        content: basemapGallery.container,
+                        expandIconClass: "esri-icon-basemap"
+                    });
+    
+                    //图层管理
+                    const layerList = new LayerList({
+                        view: self.view,
+                        // listItemCreatedFunction: defineActions
+                    });
+    
+                    const layerExp = new Expand({
+                        view: self.view,
+                        content: layerList
+                    });
+    
+                    const compass = new Compass({
+                        view: self.view,
+                        // viewpoint: new Viewpoint({
+                        //     targetGeometry: yunnanlayer.fullExtent
+                        // })
+                    });
+    
+                    self.view.ui.add([
+                        {
+                            component: homeWidget,
+                            position: "top-left",
+                            index: 1
+                        },
+                        {
+                            component: bgExpand,
+                            position: "top-right",
+                            index: 0
+                        },
+                        {
+                            component: layerExp,
+                            position: "top-right",
+                            index: 1
+                        },
+                        {
+                            component: compass,
+                            position: "top-left",
+                            index: 2
+                        },
+                    ]);
+                }
+               
                 //地图
                 const map = new Map({
                     basemap: 'satellite',
-                    layers: [yunnanlayer] //,self.xbLayer,  gralayer
+                    // layers: [yunnanlayer] //,self.xbLayer,  gralayer
                 });
 
                 self.view = new MapView({
                     map: map,
                     container: 'map',
-                    zoom: 7,
-                    center: [101.0, 25.2],
+                    // zoom: 7,
+                    // center: [101.0, 25.2],
                 });
 
-                //窗口组件
-                yunnanlayer.when(() => {
-                    // self.view.goTo(self.xbLayer.fullExtent);
+                const basemaps = ConstructBasemap();
 
-                    const homeWidget = new Home({
-                        view: self.view,
-                        viewpoint: new Viewpoint({
-                            targetGeometry: yunnanlayer.fullExtent
-                        })
-                    });
+                ConstructYunnanlayerByOnline("2044c12a6d784ba89da3427a07ce9b93", InitWidget);
 
-                    self.view.ui.add([{
-                        component: homeWidget,
-                        position: "top-left",
-                        index: 1
-                    }])
-                });
-
-                const basemapGallery = new BasemapGallery({
-                    view: self.view,
-                    container: document.createElement("div"),
-                    source: basemaps
-                });
-
-                const bgExpand = new Expand({
-                    view: self.view,
-                    content: basemapGallery.container,
-                    expandIconClass: "esri-icon-basemap"
-                });
-
-                //图层管理
-                const layerList = new LayerList({
-                    view: self.view,
-                    // listItemCreatedFunction: defineActions
-                });
-
-                const layerExp = new Expand({
-                    view: self.view,
-                    content: layerList
-                });
-
-                const compass = new Compass({
-                    view: self.view,
-                    viewpoint: new Viewpoint({
-                        targetGeometry: yunnanlayer.fullExtent
-                    })
-                });
-
-                self.view.ui.add([{
-                        component: bgExpand,
-                        position: "top-right",
-                        index: 0
-                    },
-                    {
-                        component: layerExp,
-                        position: "top-right",
-                        index: 1
-                    },
-                    {
-                        component: compass,
-                        position: "top-left",
-                        index: 2
-                    },
-                ]);
             })
         .catch(err => {
             console.error(err);
