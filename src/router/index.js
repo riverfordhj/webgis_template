@@ -93,7 +93,7 @@ export const constantRouterMap = [{
       {
         "path": "AtrributeData",
         name: 'AtrributeData',
-        component: () => import('@/views/blank/index'),
+        component: () => import('@/views/table/index'),
         meta: {
           title: '属性数据',
           icon: '3dmap'

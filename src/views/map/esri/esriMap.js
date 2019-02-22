@@ -123,7 +123,7 @@ export const createMap = function (esriLoader, options, self, yunnanJson) {
                     return [ESRIVectorBasemap, ESRIRasterBasemap, vecBasemap, imgBasemap, gray];
                 }
 
-                function ConstructYunnanLayerByJson() {
+                function AddLayerByJson() {
                     //云南json图层
                     var yunnanlayer = new GraphicsLayer({
                         title: "云南省界图层"
@@ -154,7 +154,7 @@ export const createMap = function (esriLoader, options, self, yunnanJson) {
                     return yunnanlayer;
                 }
 
-                function ConstructYunnanlayerByOnline(layerid, func) {
+                function AddLayerByOnline(layerid, func) {
                     esriConfig.portalUrl = "http://www.arcgisonline.cn/arcgis";
                     var portal = new Portal(); // Defaults to www.arcgis.com
                     portal.load().then(function () {
@@ -261,7 +261,8 @@ export const createMap = function (esriLoader, options, self, yunnanJson) {
 
                 const basemaps = ConstructBasemap();
 
-                ConstructYunnanlayerByOnline("2044c12a6d784ba89da3427a07ce9b93", InitWidget);
+                AddLayerByOnline("2044c12a6d784ba89da3427a07ce9b93", InitWidget);
+                AddLayerByOnline("5f58f6fe562c4aa59e1d9b470945377d");
 
             })
         .catch(err => {

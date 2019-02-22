@@ -5,10 +5,7 @@
     "Name" : "Name"
   },
   "geometryType" : "esriGeometryPolygon",
-  "spatialReference" : {
-    "wkid" : 4326,
-    "latestWkid" : 4326
-  },
+
   "fields" : [
     {
       "name" : "FID",

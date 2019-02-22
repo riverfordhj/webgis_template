@@ -7,7 +7,7 @@
 <script>
 import esriLoader from "esri-loader";
 import { createMap } from "./esriMap";
-import yunnanJson from "@/assets/json/yunnan.json"
+import jsondata from "@/assets/json/yunnan.json"
 export default {
   name: "EsriMap",
   data() {
@@ -24,7 +24,7 @@ export default {
         url: "http://202.114.148.160/arcgis_js_api4.8/library/4.8/dojo/dojo.js"
         // url:'https://js.arcgis.com/4.9/'
       };
-      createMap(esriLoader, options, self, yunnanJson);
+      createMap(esriLoader, options, self, jsondata);
     }
   }
 };
