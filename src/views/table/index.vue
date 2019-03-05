@@ -1,41 +1,34 @@
 <template>
   <div class="app-container">
     <el-table
-      v-loading="listLoading"
       :data="list"
       element-loading-text="Loading"
       border
       fit
       highlight-current-row>
-      <el-table-column align="center" label="ID" width="95">
+      <el-table-column prop="name" label="名称" width="aoto" align="center"></el-table-column>
+      <el-table-column prop="type" label="类型" align="center"></el-table-column>
+      <el-table-column prop="format" label="格式" align="center"></el-table-column>
+      <el-table-column prop="date" label="日期" align="center"></el-table-column>
+      <el-table-column prop="size" label="大小" align="center"></el-table-column>
+      <el-table-column prop="status" label="状态" align="center">
         <template slot-scope="scope">
-          {{ scope.$index }}
+          <el-tag
+            :type="scope.row.status === '有效' ? 'success' : scope.row.status === '过期' ? 'primary' : 'danger'"
+            disable-transitions
+          >{{scope.row.status}}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="Title">
+      <el-table-column prop="person" label="保存人员" align="center"></el-table-column>
+      <el-table-column prop="phone" label="电话" align="center"></el-table-column>
+      <el-table-column prop="check" label="查看" align="center">
         <template slot-scope="scope">
-          {{ scope.row.title }}
+          <el-button @click="handleCheck(scope.row.index)" size="small">点击查看</el-button>
         </template>
       </el-table-column>
-      <el-table-column label="Author" width="110" align="center">
+      <el-table-column prop="download" label="下载" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.author }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="Pageviews" width="110" align="center">
-        <template slot-scope="scope">
-          {{ scope.row.pageviews }}
-        </template>
-      </el-table-column>
-      <el-table-column class-name="status-col" label="Status" width="110" align="center">
-        <template slot-scope="scope">
-          <el-tag :type="scope.row.status | statusFilter">{{ scope.row.status }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" prop="created_at" label="Display_time" width="200">
-        <template slot-scope="scope">
-          <i class="el-icon-time"/>
-          <span>{{ scope.row.display_time }}</span>
+          <el-button @click="handleCheck(scope.row.index)" size="small">点击下载</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -43,7 +36,7 @@
 </template>
 
 <script>
-import { getList } from '@/api/table'
+import { getPropertyData } from '@/api/table'
 
 export default {
   filters: {
@@ -59,7 +52,7 @@ export default {
   data() {
     return {
       list: null,
-      listLoading: true
+      // listLoading: true
     }
   },
   created() {
@@ -67,12 +60,18 @@ export default {
   },
   methods: {
     fetchData() {
-      this.listLoading = true
-      getList(this.listQuery).then(response => {
-        this.list = response.data.items
-        this.listLoading = false
-      })
+      this.list = getPropertyData().tableData;
+      // this.listLoading = true;
+      // getList(this.listQuery).then(response => {
+      //   this.list = response.data.items
+      //   this.listLoading = false
+      // })
+    },
+
+    handleCheck(index){
+        console.log(index);
     }
+
   }
 }
 </script>

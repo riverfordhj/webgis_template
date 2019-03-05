@@ -40,7 +40,7 @@ export const constantRouterMap = [{
     hidden: true,
     children: [{
       path: 'dashboard',
-      component: () => import('@/views/dashboard/index')
+      component: () => import('@/views/dashboard/admin/index')
     }]
   },
   {

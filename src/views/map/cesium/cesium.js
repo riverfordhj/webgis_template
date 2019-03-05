@@ -1,32 +1,35 @@
 import Cesium from 'cesium/Cesium';
 import widgets from 'cesium/Widgets/widgets.css';
 
-export const Init = function (jsondata, isCheck) {
+export const Init = function (jsondata, isCheck,self) {
 
   Cesium.Ion.defaultAccessToken =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5MjMyYjZiMC1lZmY1LTQzNmEtODg1NS01NmQzMmE2NWY2ZjMiLCJpZCI6NDQ1MSwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MDg4NTM2Mn0.7OzWWlmUmJv_EJo0RFpuiL2G_KLgZBENAAXOgU1O1qM';
 
-  var viewer = new Cesium.Viewer('cesiumContainer');
+  self.cesiumObjs.viewer = new Cesium.Viewer('cesiumContainer');
   // Load Cesium World Terrain
-  viewer.terrainProvider = Cesium.createWorldTerrain({
+  self.cesiumObjs.viewer.terrainProvider = Cesium.createWorldTerrain({
     requestWaterMask: true, // required for water effects
     requestVertexNormals: true // required for terrain lighting
   });
   // Enable depth testing so things behind the terrain disappear.
-  viewer.scene.globe.depthTestAgainstTerrain = true;
+  self.cesiumObjs.viewer.scene.globe.depthTestAgainstTerrain = true;
 
   // AddKmlLayer(viewer, false);
-  var homeData = {
-    baselayerEntities: undefined,
-    djc3dtiles: undefined,
-    dataSource: undefined,
-    baselayershow: isCheck
-  };
-  AddJsonLayer(viewer, jsondata, true, homeData);
+  // var homeData = {
+  //   baselayerEntities: undefined,
+  //   djc3dtiles: undefined,
+  //   gbh3dtiles:undefined,
+  //   dataSource: undefined,
+  //   baselayershow: isCheck
+  // };
+  // AddJsonLayer(viewer, jsondata, true, homeData);
 
   // debugger
-  Load3dtiles(viewer, '//192.168.5.51/ldata/djc/tileset.json', true, homeData);
+  // Load3dtiles(viewer, '//192.168.5.51/ldata/djc/tileset.json', true, homeData);
 
+  // Load3dtiles(viewer, 'http://202.114.148.160/sogbTo3dtiles/DongJiaCun/tileset.json', true, homeData,"djc3dtiles");
+  // Load3dtiles(viewer, 'http://202.114.148.160/sogbTo3dtiles/GuanBaHe/tileset.json', true, homeData,"gbh3dtiles");
 
   // var viewer = CreateViewer(1);
 
@@ -38,31 +41,84 @@ export const Init = function (jsondata, isCheck) {
   //   AddModel(viewer);
   // }
 
-  viewer.homeButton.viewModel.command.beforeExecute.addEventListener(function (e) {
-    e.cancel = true;
-    viewer.flyTo(homeData.baselayerEntities);
-  });
+  // viewer.homeButton.viewModel.command.beforeExecute.addEventListener(function (e) {
+  //   e.cancel = true;
+  //   viewer.flyTo(homeData.baselayerEntities);
+  // });
 
-  var element = document.getElementById('baselayer');
-  element.addEventListener('change', function (e) {
-    homeData.baselayerEntities.show = e.target.checked;
-  });
+  // var element = document.getElementById('baselayer');
+  // element.addEventListener('change', function (e) {
+  //   homeData.baselayerEntities.show = e.target.checked;
+  //   var obj = {
+  //     checked : e.target.checked,
+  //     dataSource : homeData.dataSource,
+  //   }
+  //   TrueChecked.call(obj,"JsonData",viewer);
+  // });
 
-  element = document.getElementById('djcmodel');
-  element.addEventListener('change', function (e) {
-    homeData.djc3dtiles.show = e.target.checked;
-  });
+  // var djcelement = document.getElementById('djcmodel');
+  // djcelement.addEventListener('change', function (e) {
+  //   homeData.djc3dtiles.show = e.target.checked;
+  //   // var checked = e.target.checked;
+  //   var obj = {
+  //     checked : e.target.checked,
+  //     tileset : homeData.djc3dtiles
+  //   }
+  //   TrueChecked.call(obj,"3DTiles",viewer);
+  // });
+
+  // var gbhelement = document.getElementById('gbhmodel');
+  // gbhelement.addEventListener('change', function (e) {
+  //   homeData.gbh3dtiles.show = e.target.checked;
+  //   var obj = {
+  //     checked : e.target.checked,
+  //     tileset : homeData.gbh3dtiles,
+  //   }
+  //   TrueChecked.call(obj,"3DTiles",viewer);
+  // });
+
+
 }
 
-function Load3dtiles(viewer, url, isFlyTo, homeData) {
+export function FlyTo_TileSet(tileset,viewer){
+  viewer.flyTo(tileset, new Cesium.HeadingPitchRange(0.5, -0.2, tileset.boundingSphere.radius * 4.0));
+}
+
+function FlyTo_JsonData(viewer){
+  viewer.flyTo(this.dataSource);
+}
+
+function TrueChecked(type,viewer){
+  if(type == "JsonData"){
+    if(this.checked){
+      FlyTo_JsonData.call(this,viewer);
+      return;
+    }else{
+      return;
+    }
+  }
+
+  if(this.checked){
+    FlyTo_TileSet.call(this,viewer);
+  }
+}
+
+function Load3dtiles(viewer, url, isFlyTo, homeData,string) {
   var tileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
     url: url,
   }));
   tileset.readyPromise.then(function () {
-    homeData.djc3dtiles = tileset;
+    homeData[string] = tileset;
     if (isFlyTo)
       viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0.5, -0.2, tileset.boundingSphere.radius * 4.0));
   });
+}
+  
+export function Load3dtiles1(url,viewer){
+  var tileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
+    url: url,
+  }));
+  return tileset;
 }
 
 function CreateViewer(id) {
@@ -134,7 +190,7 @@ function AddImageryLayer(viewer, id) {
   }
 }
 
-function AddJsonLayer(viewer, jsondata, isFlyTo, homeData) {
+export function AddJsonLayer(viewer, jsondata, isFlyTo, homeData) {
   var geojsonOptions = {
     clampToGround: true
   };
@@ -146,9 +202,9 @@ function AddJsonLayer(viewer, jsondata, isFlyTo, homeData) {
     viewer.dataSources.add(dataSource);
 
     // Save an new entity collection of baselayer data
-    dataSource.entities.show = homeData.baselayershow;
-    homeData.baselayerEntities = dataSource.entities;
-    homeData.dataSource = dataSource;
+    // dataSource.entities.show = homeData.baselayershow;
+    // homeData.baselayerEntities = dataSource.entities;
+    // homeData.dataSource = dataSource;
 
     // Get the array of entities
     var neighborhoodEntities = dataSource.entities.values;
