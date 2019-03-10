@@ -19,9 +19,10 @@
           @check-change="handleCheckChange"
           @node-click="handleNodeClick"
           :indent=0
-          :draggable = true
+          :draggable=true
           :allow-drop="allowDrop"
-          :default-checked-keys="[0]"
+          :default-checked-keys="defaultChecked" 
+          :props="defaultProps"
           node-key="id">
         </el-tree>
       </el-card>
@@ -37,7 +38,7 @@ import widgets from "cesium/Widgets/widgets.css";
 import ElementUI from "element-ui";
 import "element-ui/lib/theme-chalk/index.css";
 
-import { Init,AddJsonLayer,Load3dtiles1,FlyTo_TileSet } from "./cesium";
+import { Init,AddJsonLayer,Load3dtiles1,FlyTo_TileSet,FlyTo_JsonData } from "./cesium";
 import jsondata from "@/assets/json/yunnanshi.json";
 // import kmldata from "@/assets/kml/yunnanshi.kml";
 
@@ -48,6 +49,10 @@ export default {
       checked: true,
       djcmodel: true,
       gbhmodel:true,
+      defaultProps: {
+        children: 'children',
+        label: 'label'
+      },
       tree_data:[
       //   {
       //   id: 1,
@@ -70,6 +75,7 @@ export default {
       ],
       cesium_resources:[],
       tilesets:new Map(),
+      defaultChecked:[],
       cesiumObjs:{
         viewer:undefined
       }
@@ -90,18 +96,36 @@ export default {
     this.cesium_resources =  this.$store.getters.cesium_resources;
     this.CreatMap(self);    
     this.traversing();
+    this.$nextTick(() => {
+      let size = this.tilesets.size;
+      var arr = [];
+      for(var i = 0;i < size;i++){
+       arr.push(i);
+      }
+      this.defaultChecked = arr;
+    });
   },
   methods: {
     CreatMap(self) {
       Init(jsondata, this.checked,self);
     },
     handleCheckChange(data, checked, indeterminate) {
-      var target = this.tilesets.get(data.label);     
-      target.show = checked;
+      var target = this.tilesets.get(data.label);  
+      if(data.label.match("模型")){
+        target.show = checked;  
+      }else{
+        target.then(function (dataSource) {
+          dataSource.entities.show = checked;
+        })
+      }    
     },
     handleNodeClick(data){
       var target = this.tilesets.get(data.label);
-      FlyTo_TileSet(target,this.cesiumObjs.viewer)
+      if(data.label.match("模型")){
+        FlyTo_TileSet(target,this.cesiumObjs.viewer)   
+      }else{
+        FlyTo_JsonData(target,this.cesiumObjs.viewer)
+      }
     },
     allowDrop(t1,t2,type){
       if (t2.data.label === "123") {
@@ -114,32 +138,34 @@ export default {
       this.cesium_resources.map((d,i) =>{
         this.structuralTransform(d.layerName,i);
         this.addLayers(d.url,d.type,d.layerName);
-      })
+      });
+      this.defaultChecked = [1]
     },
     structuralTransform(label,id){
       this.tree_data.push({
         label:label,
         id:id
-      })
+      });   
     },
     addLayers(url,type,layerName){
       //此处以后要改为Map
       switch(type){
         case "二维JSON":
-          // AddJsonLayer(this.cesiumObjs.viewer,url,true)
+          var obj = AddJsonLayer(this.cesiumObjs.viewer,url,true);
+          this.tilesets.set(layerName,obj);
+
           break;
         case "三维倾斜测量":
           var obj = Load3dtiles1(url,this.cesiumObjs.viewer);
-          var self = this;
-          obj.readyPromise.then(function () {
-            self.cesiumObjs.viewer.flyTo(obj, new Cesium.HeadingPitchRange(0.5, -0.2, obj.boundingSphere.radius * 4.0));
-          });
+          // var self = this;
+          // obj.readyPromise.then(function () {
+          //   self.cesiumObjs.viewer.flyTo(obj, new Cesium.HeadingPitchRange(0.5, -0.2, obj.boundingSphere.radius * 4.0));
+          // });
           
           this.tilesets.set(layerName,obj)
           break;
-      }
-     
-    },
+      }    
+    }
   },
 };
 </script>

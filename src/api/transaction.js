@@ -11,23 +11,34 @@ export function fetchList(query) {
 export function getList(){
   return {
     data:[{
-      order_no: "2E45f34b-3B46-E892-3101-B6eaceADDc2B",
-      price: 1938,
+      name: "董家村房屋面",
+      site: "ArcGIS Online CN",
+      id:"a88b5dc3208049cc991ab64633b175d2",
       status: "success",
       timestamp: 1270943820915,
       username: "James Lewis",
     },{
-      order_no: "6C6C95E7-cf24-f72D-ef50-34C554d8FddC",
-      price: 7248.8,
-      status: "pending",
+      name: "董家村水系线",
+      site: "ArcGIS Online CN",
+      id:"fb0c493d6e1446669862edc16f7a6eaf",
+      status: "success",
       timestamp: 319797879492,
       username: "Ronald Hernandez",
     },{
-      order_no: "aBAc74c2-dBDb-fBF1-366D-f334593bC95A",
-      price: 8956.43,
+      name: "董家村水系点",
+      site: "ArcGIS Online CN",
+      id:"e6cb7992cf2347bbb3e1f13c4ce1ad03",
       status: "success",
       timestamp: 616743199669,
       username: "Maria Rodriguez"
-    }]
+    },{
+      name: "董家村植被与土质面",
+      site: "ArcGIS Online CN",
+      id:"e57557968d434d5286554eaa90b29d61",
+      status: "success",
+      timestamp: 616743199669,
+      username: "Maria Rodriguez"
+    }
+  ]
   };
 }

@@ -1,7 +1,7 @@
 <template>
   <el-card class="box-card-component" style="margin-left:8px;">
     <div slot="header" class="box-card-header">
-      <img src="https://wpimg.wallstcn.com/e7d23d71-cf19-4b90-a1cc-f56af8c0903d.png">
+      <img src="http://www.arcgisonline.cn/arcgis/sharing/rest/content/items/9ad5896f1a434bcab962b85c9c1d49a8/data?token=bDjw5WbhlpcfN6rV9zkZuleepmcwtzoju8sxF3clqumdAUWiB_WT4RFVQUzHrk4rlVVQCBNbW5bDpdmg55tpGuJ4cu0GVXM9WXDfJkblqieBVjnBYgAxTGMub2a-ut82cXIisAB_10PatbvsoTRVvIBCZkRDUF0xrIxb0_8u19qTQXajK8nFu2MD7Wt2BZo9Fh7PNGtVNOYa8dlFognuRA..">
     </div>
     <div style="position:relative;">
       <pan-thumb :image="avatar" class="panThumb"/>

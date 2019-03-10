@@ -4,7 +4,7 @@ const layer_resources = {
     cesium_resources:[{
       layerName:"云南市界图层",
       type:"二维JSON",
-      url:"../../../public/yunnanshi.json",
+      url:"http://202.114.148.160/sogbTo3dtiles/GeoJSON/yunnanshi.json",
       visible:true
     },{
       layerName:"董家村模型",

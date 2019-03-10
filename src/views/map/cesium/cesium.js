@@ -84,8 +84,8 @@ export function FlyTo_TileSet(tileset,viewer){
   viewer.flyTo(tileset, new Cesium.HeadingPitchRange(0.5, -0.2, tileset.boundingSphere.radius * 4.0));
 }
 
-function FlyTo_JsonData(viewer){
-  viewer.flyTo(this.dataSource);
+export function FlyTo_JsonData(jsonData,viewer){
+  viewer.flyTo(jsonData);
 }
 
 function TrueChecked(type,viewer){
@@ -245,12 +245,11 @@ export function AddJsonLayer(viewer, jsondata, isFlyTo, homeData) {
         };
       }
     }
-
+    
     if (isFlyTo)
       viewer.flyTo(dataSource);
-
   });
-
+  return dataPromise;
 }
 
 function AddKmlLayer(viewer, isFlyTo) {

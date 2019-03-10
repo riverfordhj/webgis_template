@@ -1,13 +1,18 @@
 <template>
   <el-table :data="list" style="width: 100%;padding-top: 15px;">
-    <el-table-column label="Order_No" min-width="200">
+    <el-table-column label="二维数据" min-width="200" align="center">
       <template slot-scope="scope">
-        {{ scope.row.order_no | orderNoFilter }}
+        {{ scope.row.name | orderNoFilter }}
       </template>
     </el-table-column>
-    <el-table-column label="Price" width="195" align="center">
+    <el-table-column label="储存位置" width="240" align="center">
       <template slot-scope="scope">
-        ¥{{ scope.row.price | toThousandFilter }}
+        {{ scope.row.site}}
+      </template>
+    </el-table-column>
+    <el-table-column label="LayerID" width="320" align="center">
+      <template slot-scope="scope">
+        {{ scope.row.id}}
       </template>
     </el-table-column>
     <el-table-column label="Status" width="100" align="center">
