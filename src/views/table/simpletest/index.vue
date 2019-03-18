@@ -33,7 +33,8 @@
     <el-table-column prop="phone" label="电话" align="center"></el-table-column>
     <el-table-column prop="download" label="数据下载" align="center">
       <template slot-scope="scope">
-        <el-button @click="showProp(scope.row.prop)" type="img" size="small">点击下载</el-button>
+        <!-- <el-button @click="showProp(scope.row.prop)" type="text" size="small">点击下载</el-button> -->
+        <el-button @click="addResourceToStore(scope.row)" type="text" size="small">加载到地图</el-button>
       </template>
     </el-table-column>
   </el-table>
@@ -41,6 +42,7 @@
 
   <script>
 import { getMockData } from "@/api/tableTestData";//getTableTestData
+import store from '../../../store'
 export default {
   data() {
     return {
@@ -58,11 +60,16 @@ export default {
       //   this.tableData = reponse.data.tableData;
       // });
     },
-
     showProp(prop) {
       console.log(prop);
+    },
+    addResourceToStore(data){
+      store.dispatch('AddResources', { data });
+      this.$message({
+        message: '已加载!',
+        type: 'success'
+      })
     }
-
   }
 };
 </script>

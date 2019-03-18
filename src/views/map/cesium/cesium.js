@@ -88,7 +88,7 @@ export function FlyTo_JsonData(jsonData,viewer){
   viewer.flyTo(jsonData);
 }
 
-function TrueChecked(type,viewer){
+function TrueChecked(type,viewer) {
   if(type == "JsonData"){
     if(this.checked){
       FlyTo_JsonData.call(this,viewer);
@@ -103,7 +103,7 @@ function TrueChecked(type,viewer){
   }
 }
 
-function Load3dtiles(viewer, url, isFlyTo, homeData,string) {
+function Load3dtiles(viewer, url, isFlyTo, homeData, string) {
   var tileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
     url: url,
   }));
@@ -114,7 +114,7 @@ function Load3dtiles(viewer, url, isFlyTo, homeData,string) {
   });
 }
   
-export function Load3dtiles1(url,viewer){
+export function Load3dtiles1(url, viewer) {
   var tileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
     url: url,
   }));

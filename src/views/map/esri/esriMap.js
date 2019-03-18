@@ -1,4 +1,4 @@
-export const createMap = function (esriLoader, options, self, yunnanJson) {
+export const createMap = function (esriLoader, options, self, yunnanJson, store) {
   esriLoader.loadModules(
     [
       'esri/Map',
@@ -207,8 +207,33 @@ export const createMap = function (esriLoader, options, self, yunnanJson) {
           //图层管理
           const layerList = new LayerList({
             view: self.view,
-            // listItemCreatedFunction: defineActions
+            listItemCreatedFunction: defineActions
           });
+
+          function defineActions(event) {
+            let item = event.item;    
+            item.actionsSections = [
+              [{
+                title: "层级上升",
+                className: "esri-icon-up-arrow",
+                id: "level-up"
+              }, {
+                title: "层级下降",
+                className: "esri-icon-down-arrow",
+                id: "level-down"
+              }],
+              [{
+                title: "缩放到图层",
+                className: "esri-icon-zoom-out-fixed",
+                id: "full-extent"
+              }],
+              [{
+                title: "删除该图层",
+                className: "esri-icon-close",
+                id: "delete"
+              }]
+            ]
+          }
 
           const layerExp = new Expand({
             view: self.view,
@@ -221,6 +246,34 @@ export const createMap = function (esriLoader, options, self, yunnanJson) {
             //     targetGeometry: yunnanlayer.fullExtent
             // })
           });
+
+          self.view.when(() => {
+            layerList.on("trigger-action", function(event) {
+              var layer = event.item.layer; //被选图层
+              var id = event.action.id;     //被选操作
+              var index = self.view.map.layers.items.indexOf(layer);
+              
+              switch(id) {
+                case "level-down":
+                  self.view.map.reorder(layer, index -1);
+                  break;
+                case "level-up":
+                  self.view.map.reorder(layer, index + 1);
+                  break;
+                case "full-extent":
+                  self.view.goTo(layer.fullExtent);
+                  break;
+                case "delete":
+                  // self.view.map.remove(layer);
+                  // self.
+                  // console.log(layer.portalItem.id);
+                  store.dispatch('RemoveEsriResources', layer.portalItem.id);
+                  break;
+                default:
+                  break;
+              }
+            })
+          })
 
           self.view.ui.add([{
               component: homeWidget,
@@ -256,17 +309,17 @@ export const createMap = function (esriLoader, options, self, yunnanJson) {
           container: 'map',
           // zoom: 7,
           // center: [101.0, 25.2],
-        });
+        });   
 
         const basemaps = ConstructBasemap();
 
-        AddLayerByOnline("8fc2cf216b234ebda3fc87268f3e1173");
-        AddLayerByOnline("e750516c0b3742bd9b7307c80b0f76ca");
-        AddLayerByOnline("e57557968d434d5286554eaa90b29d61");
-        AddLayerByOnline("e6cb7992cf2347bbb3e1f13c4ce1ad03");
-        AddLayerByOnline("fb0c493d6e1446669862edc16f7a6eaf");
+        // AddLayerByOnline("8fc2cf216b234ebda3fc87268f3e1173");
+        // AddLayerByOnline("e750516c0b3742bd9b7307c80b0f76ca");
+        // AddLayerByOnline("e57557968d434d5286554eaa90b29d61");
+        // AddLayerByOnline("e6cb7992cf2347bbb3e1f13c4ce1ad03");
+        // AddLayerByOnline("fb0c493d6e1446669862edc16f7a6eaf");
         AddLayerByOnline("a88b5dc3208049cc991ab64633b175d2", InitWidget);
-        AddLayerByOnline("5f58f6fe562c4aa59e1d9b470945377d");
+        // AddLayerByOnline("5f58f6fe562c4aa59e1d9b470945377d");
 
         // AddLayerByOnline("2044c12a6d784ba89da3427a07ce9b93", InitWidget);
         // AddLayerByOnline("5f58f6fe562c4aa59e1d9b470945377d");
@@ -275,4 +328,79 @@ export const createMap = function (esriLoader, options, self, yunnanJson) {
     .catch(err => {
       console.error(err);
     });
+}
+
+export const AddLayer = function(esriLoader, options, view, layerID) {
+  esriLoader.loadModules(
+    [
+      'esri/Map',
+      "esri/Basemap",
+      "esri/Viewpoint",
+      "esri/Graphic",
+      'esri/views/MapView',
+      "esri/layers/Layer",
+      "esri/layers/FeatureLayer",
+      "esri/layers/WebTileLayer",
+      "esri/layers/TileLayer",
+      "esri/layers/GraphicsLayer",
+      "esri/widgets/Expand",
+      "esri/widgets/Home",
+      "esri/widgets/LayerList",
+      "esri/widgets/BasemapGallery",
+      "esri/widgets/Legend",
+      "esri/widgets/Compass",
+      "esri/widgets/Print",
+      "esri/core/urlUtils",
+      "esri/config",
+      "esri/portal/Portal"
+    ], options)
+    .then(
+      ([
+        Map,
+        Basemap,
+        Viewpoint,
+        Graphic,
+        MapView,
+        Layer,
+        FeatureLayer,
+        WebTileLayer,
+        TileLayer,
+        GraphicsLayer,
+        Expand,
+        Home,
+        LayerList,
+        BasemapGallery,
+        Legend,
+        Compass,
+        Print,
+        urlUtils,
+        esriConfig,
+        Portal
+      ]) => {
+        esriConfig.portalUrl = "http://www.arcgisonline.cn/arcgis";
+        var portal = new Portal(); // Defaults to www.arcgis.com
+        portal.load().then(function () {
+          // console.log(layerID);
+          Layer.fromPortalItem({
+              portalItem: { // autocasts as new PortalItem()
+                id: layerID,
+              }
+            }).then(initLayer)
+            .catch(rejection);
+        }); // Adds the layer to the map once it loads
+        function initLayer(layer) {
+          view.map.add(layer);
+          // yunnanlayer = layer;
+          // debugger
+
+          // layer.when(() => {
+          //   if (func)
+          //     func(layer);
+          // });
+        }
+
+        function rejection(error) {
+          console.log("Layer failed to load: ", error);
+        }
+      })
 }
