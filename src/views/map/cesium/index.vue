@@ -174,7 +174,7 @@ export default {
       this.tree_data = [];
       this.cesium_resources.map((d, i) => {
         this.structuralTransform(d.name, i);
-        this.addLayers(d.serverAddress, d.type, d.name);
+        this.addLayers(d);
       });
       this.defaultChecked = [1];
     },
@@ -184,21 +184,21 @@ export default {
         id: id
       });
     },
-    addLayers(url, type, layerName) {
+    addLayers({serverAddress, type, name}) {
       //此处以后要改为Map
       switch (type) {
         case "二维JSON":
-          var obj = AddJsonLayer(this.cesiumObjs.viewer, url, true);
-          this.tilesets.set(layerName, obj);
+          var obj = AddJsonLayer(this.cesiumObjs.viewer, serverAddress, true);
+          this.tilesets.set(name, obj);
 
           break;
         case "三维倾斜测量":
-          var obj = Load3dtiles1(url, this.cesiumObjs.viewer);
+          var obj = Load3dtiles1(serverAddress, this.cesiumObjs.viewer);
           // var self = this;
           // obj.readyPromise.then(function () {
           //   self.cesiumObjs.viewer.flyTo(obj, new Cesium.HeadingPitchRange(0.5, -0.2, obj.boundingSphere.radius * 4.0));
           // });
-          this.tilesets.set(layerName, obj);
+          this.tilesets.set(name, obj);
           break;
       }
     },

@@ -36,8 +36,9 @@ export default {
         AddLayer(esriLoader, this.options, this.view, row.serverAddress)
       })
     },
-    getView(view){
+    getView(view){ 
       this.layer_Resources = this.$store.getters.esri_resources;
+      this.view.map.removeAll();
       view.when(() => {     
         this.layer_Resources.map(row => {
           AddLayer(esriLoader, this.options, this.view, row.serverAddress)

@@ -2,12 +2,12 @@ const layer_resources = {
   state:{
     esri_resources:[],
     cesium_resources:[
-    //   {
-    //   name:"云南市界图层",
-    //   type:"二维JSON",
-    //   serverAddress:"http://202.114.148.160/sogbTo3dtiles/GeoJSON/yunnanshi.json",
-    //   visible:true
-    // },
+      {
+      name:"云南市界图层",
+      type:"二维JSON",
+      serverAddress:"http://202.114.148.160/sogbTo3dtiles/GeoJSON/yunnanshi.json",
+      visible:true
+      },
     // {
     //   layerName:"董家村模型",
     //   type:"三维倾斜测量",

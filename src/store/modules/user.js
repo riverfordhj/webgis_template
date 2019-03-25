@@ -1,4 +1,4 @@
-import { loginByUsername, logout, getUserInfo } from '@/api/login'
+import { loginByUsername, logout, getUserInfo } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 
 const user = {
@@ -50,8 +50,8 @@ const user = {
       return new Promise((resolve, reject) => {
         loginByUsername(username, userInfo.password).then(response => {
           const data = response.data
-          commit('SET_TOKEN', data.token)
-          setToken(response.data.token)
+          commit('SET_TOKEN', data)
+          setToken(response.data)
           resolve()
         }).catch(error => {
           reject(error)
@@ -59,7 +59,6 @@ const user = {
       })
     },
 
-    // 获取用户信息
      // 获取用户信息
      GetUserInfo({ commit, state }) {
       return new Promise((resolve, reject) => {
@@ -68,15 +67,15 @@ const user = {
             reject('error')
           }
           const data = response.data
-
-          if (data.roles && data.roles.length > 0) { // 验证返回的roles是否是一个非空数组
-            commit('SET_ROLES', data.roles)
+          if (data.roles) { // 验证返回的roles是否是一个非空数组
+            let rolesArr = data.roles.split(",")
+            commit('SET_ROLES', rolesArr)
           } else {
             reject('getInfo: roles must be a non-null array !')
           }
 
-          commit('SET_NAME', data.name)
-          commit('SET_AVATAR', data.avatar)
+          commit('SET_NAME', data.LoginName)
+          commit('SET_AVATAR', "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif")
           commit('SET_INTRODUCTION', data.introduction)
           resolve(response)
         }).catch(error => {

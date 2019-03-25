@@ -1,9 +1,10 @@
 import Cookies from 'js-cookie'
 
-const TokenKey = 'Admin-Token'
+const TokenKey = 'token'
 
 export function getToken() {
   return Cookies.get(TokenKey)
+  debugger;
 }
 
 export function setToken(token) {

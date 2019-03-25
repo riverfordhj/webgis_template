@@ -1,11 +1,15 @@
 <template>
   <div class="app-container">
+    <!-- <div class="filter-container">
+      <el-button type="primary" >添加</el-button>
+      <el-button type="danger" >删除</el-button>
+    </div> -->
     <el-table
       :data="list"
       element-loading-text="Loading"
       border
       fit
-      highlight-current-row>
+      highlight-current-row>     
       <el-table-column prop="name" label="名称" width="aoto" align="center"></el-table-column>
       <el-table-column prop="type" label="类型" align="center"></el-table-column>
       <el-table-column prop="format" label="格式" align="center"></el-table-column>
