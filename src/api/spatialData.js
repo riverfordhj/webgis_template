@@ -1,6 +1,7 @@
 import request from '@/utils/request'
 // import qs from "qs"
 
+//查
 export function getSpatialData() {
   return request({
     url: "spatialdata/GetData",
@@ -8,6 +9,7 @@ export function getSpatialData() {
   })
 }
 
+//增
 export function addSpatialData(data) {
   return request({
     url: "spatialdata/AddData",
@@ -19,6 +21,7 @@ export function addSpatialData(data) {
   })
 }
 
+//删
 export function deleteSpatialData(data) {
   return request({
     url: "spatialdata/DeleteData",

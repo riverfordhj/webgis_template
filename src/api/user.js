@@ -2,6 +2,7 @@ import request from '@/utils/request'
 import qs from "qs"
 // import { getToken } from '@/utils/auth'
 
+//用户登录
 export function loginByUsername(username, password) {
   return request({
     url: '/user/login',
@@ -16,6 +17,7 @@ export function loginByUsername(username, password) {
   })
 }
 
+//用户登出
 export function logout() {
   return request({
     url: "user/logout",
@@ -23,6 +25,7 @@ export function logout() {
   })
 }
 
+//获取用户信息
 export function getUserInfo() {
   return request({
     url: "user/GetUserInfoFromToken",
@@ -30,6 +33,7 @@ export function getUserInfo() {
   })
 }
 
+//创建新用户
 export function createUser(data){
   return request({
     url: '/user/register',
@@ -41,6 +45,7 @@ export function createUser(data){
   })
 }
 
+//修改密码
 export function changePsd(data){
   return request({
     url: '/user/changePwd',

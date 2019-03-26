@@ -5,7 +5,7 @@
       <el-button type="danger" @click="handleDelete">删除</el-button>
     </div>
     <el-table v-loading="listLoading" :data="tableData" border style="width: 100%" @selection-change="handleSelectionChange">
-      <el-table-column v-permission="['spatialDataManager']" type="selection" width="55"></el-table-column>
+      <el-table-column type="selection" width="55"></el-table-column>
       <el-table-column prop="name" label="名称" align="center" width="auto"></el-table-column>
       <el-table-column prop="xzq" label="行政区" align="center"></el-table-column>
       <el-table-column prop="type" label="类型" align="center"></el-table-column>
@@ -142,7 +142,6 @@ export default {
   },
   methods: {
     getList() {
-      // this.tableData = getMockData().tableData;
       this.listLoading = true;
       getSpatialData().then(reponse => {
         this.tableData = reponse.data;
@@ -210,8 +209,6 @@ export default {
     confirm() {
       this.$refs["dataForm"].validate(valid => {
         if (valid) {
-          // const tempData = Object.assign({}, this.temp);
-          // tempData.timestamp = +new Date(tempData.timestamp)
           var self = this;
           addSpatialData(this.temp).then(d =>{
             self.tableData.unshift(self.temp);

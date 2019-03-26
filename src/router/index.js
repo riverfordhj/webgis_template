@@ -23,8 +23,8 @@ import Layout from '../views/layout/Layout'
 **/
 export const constantRouterMap = [{
     path: '/login',
-    component: () => import('@/views/login/index'),
-    // component: () => import('@/views/login/login_video'),
+    // component: () => import('@/views/login/index'),
+    component: () => import('@/views/login/login_video'),
     hidden: true
   },
   {
@@ -85,7 +85,7 @@ export const constantRouterMap = [{
     children: [{
         path: 'spatialData',
         name: 'spatialData',
-        component: () => import('@/views/table/simpletest/index'),
+        component: () => import('@/views/table/spatialData/index'),
         meta: {
           title: '空间数据',
           icon: 'table'
@@ -94,7 +94,7 @@ export const constantRouterMap = [{
       {
         "path": "AtrributeData",
         name: 'AtrributeData',
-        component: () => import('@/views/table/index'),
+        component: () => import('@/views/table/attributeData/index'),
         meta: {
           title: '属性数据',
           icon: '3dmap'
