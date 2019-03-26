@@ -126,3 +126,13 @@ export function debounce(func, wait, immediate) {
     return result
   }
 }
+
+export function throttle(fn, wait=500) {
+  let timer;
+  return function (...args) {
+      if(timer == null) { // undefined == null // true undefined === null //false 这里不要写成 严格相等 不然永远执行不进去
+          timer = setTimeout(() => timer = null, wait)
+          return fn.apply(this, args);
+      }
+  }
+}

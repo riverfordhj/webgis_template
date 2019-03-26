@@ -75,7 +75,8 @@ const user = {
           }
 
           commit('SET_NAME', data.LoginName)
-          commit('SET_AVATAR', "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif")
+          commit('SET_AVATAR', "https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=1969454436,2593720224&fm=26&gp=0.jpg")
+          // commit('SET_AVATAR', "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif")
           commit('SET_INTRODUCTION', data.introduction)
           resolve(response)
         }).catch(error => {

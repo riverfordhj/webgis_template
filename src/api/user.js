@@ -29,3 +29,25 @@ export function getUserInfo() {
     method: "get",
   })
 }
+
+export function createUser(data){
+  return request({
+    url: '/user/register',
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+    },
+    data: data
+  })
+}
+
+export function changePsd(data){
+  return request({
+    url: '/user/changePwd',
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+    },
+    data: data
+  })
+}

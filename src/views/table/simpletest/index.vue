@@ -1,11 +1,11 @@
 <template>
   <div class="app-container">
-    <div class="filter-container">
+    <div v-permission="['spatialDataManager']" class="filter-container">
       <el-button type="primary" @click="handleCreate" >添加</el-button>
       <el-button type="danger" @click="handleDelete">删除</el-button>
     </div>
     <el-table v-loading="listLoading" :data="tableData" border style="width: 100%" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55"></el-table-column>
+      <el-table-column v-permission="['spatialDataManager']" type="selection" width="55"></el-table-column>
       <el-table-column prop="name" label="名称" align="center" width="auto"></el-table-column>
       <el-table-column prop="xzq" label="行政区" align="center"></el-table-column>
       <el-table-column prop="type" label="类型" align="center"></el-table-column>
@@ -95,6 +95,7 @@
 import { getMockData } from "@/api/tableTestData";
 import { getSpatialData, addSpatialData, deleteSpatialData } from "@/api/spatialData";
 import store from "../../../store";
+import permission from "@/directive/permission/index.js";
 export default {
   data() {
     return {
@@ -132,6 +133,9 @@ export default {
         ]
       }
     };
+  },
+  directives:{
+    permission
   },
   created() {
     this.getList();
