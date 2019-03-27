@@ -42,7 +42,8 @@ export default {
     window.addEventListener("resize", this.__resizeHandler);
 
     const sidebarElm = document.getElementsByClassName('sidebar-container')[0]
-    sidebarElm.addEventListener('transitionend', this.__resizeHandler)
+    // sidebarElm.addEventListener('transitionend', this.__resizeHandler)
+    sidebarElm.addEventListener('transitionend', this.sidebarResizeHandler)
   },
   beforeDestroy() {
     if (!this.chart) {
@@ -53,6 +54,11 @@ export default {
     this.chart = null;
   },
   methods: {
+    sidebarResizeHandler(e) {
+      if (e.propertyName === 'width') {
+        this.__resizeHandler()
+      }
+    },
     initChart() {
       // echarts.registerMap("yunnan", json);
       this.chart = echarts.init(this.$el, "macarons");

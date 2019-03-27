@@ -32,130 +32,137 @@
 </template>
 
 <script>
-  import { createUser } from "@/api/user"
-  import { throttle } from "@/utils/index"
+import { createUser } from "@/api/user";
+import { throttle } from "@/utils/index";
 
-  export default {
-    name: '',
-    data() {
-      const validateConfirmPsd = (rule, value, callback) => {
-        if(value != this.userForm.password){
-          callback(new Error('密码不一致！'))       
-        }else{
-          callback()
+export default {
+  name: "",
+  data() {
+    const validateConfirmPsd = (rule, value, callback) => {
+      if (value != this.userForm.password) {
+        callback(new Error("密码不一致！"));
+      } else {
+        callback();
+      }
+    };
+    return {
+      userForm: {
+        username: "",
+        password: "",
+        confirmPsd: "",
+        roles: []
+      },
+      roleOptions: [
+        {
+          value: "0",
+          label: "管理员"
+        },
+        {
+          value: "1",
+          label: "数据管理员"
+        },
+        {
+          value: "2",
+          label: "数据查询员"
         }
-      }
-      return {
-        userForm:{
-          username:"",
-          password:"",
-          confirmPsd:"",
-          roles:[],
-        },
-        roleOptions:[{
-          value: '0',
-          label: '管理员'
-        }, {
-          value: '1',
-          label: '数据管理员'
-        }, {
-          value: '2',
-          label: '数据查询员'
-        }],
-        district:false,
-        createRules:{
-          username: [
-            { required: true, message: '用户名不能为空', trigger: 'blur' },
-            { min: 3, max: 12, message: '长度在 3 到 12 个字符', trigger: 'blur' }
-          ],
-          password: [
-            { required: true, message: '密码不能为空', trigger: 'blur' },
-            { min: 6, message: '长度大于6个字符', trigger: 'blur' }            
-          ],
-          confirmPsd: [
-            { required: true, message: '确认密码不能为空', trigger: 'blur' },
-            { required: true, trigger: 'blur',validator: validateConfirmPsd}
-            ],
-          roles:[{ required: true, trigger: 'change', message: '角色不能为空'}],
-        },
-        passwordType:"password",
-        loading: false,
-      }
+      ],
+      district: false,
+      createRules: {
+        username: [
+          { required: true, message: "用户名不能为空", trigger: "blur" },
+          { min: 3, max: 12, message: "长度在 3 到 12 个字符", trigger: "blur" }
+        ],
+        password: [
+          { required: true, message: "密码不能为空", trigger: "blur" },
+          { min: 6, message: "长度大于6个字符", trigger: "blur" }
+        ],
+        confirmPsd: [
+          { required: true, message: "确认密码不能为空", trigger: "blur" },
+          { required: true, trigger: "blur", validator: validateConfirmPsd }
+        ],
+        roles: [{ required: true, trigger: "change", message: "角色不能为空" }]
+      },
+      passwordType: "password",
+      loading: false
+    };
+  },
+  methods: {
+    clear() {
+      this.userForm = {
+        username: "",
+        password: "",
+        confirmPsd: "",
+        roles: [],
+        lazyCreateObj:throttle(this.create, 5000)
+      };
     },
-    methods:{
-      clear(){
-        this.userForm={
-          username:"",
-          password:"",
-          confirmPsd:"",
-          roles:[],
-        }
-      },
-      create(){
-        this.$refs.userForm.validate(valid =>{
-          if (valid) {
-            this.loading = true;           
-            let roles = this.userForm.roles.reduce( (total, role) => {
-              return total + "," + role
-            })
+    create() {
+      this.$refs.userForm.validate(valid => {
+        if (valid) {
+          this.loading = true;
+          let roles = this.userForm.roles.reduce((total, role) => {
+            return total + "," + role;
+          });
 
-            var data = {
-              LoginName:this.userForm.username,
-              Pwd:this.userForm.password,
-              roles:roles,
-            }
-            createUser(data).then(res => {
-              if(res.status == 200){
+          var data = {
+            LoginName: this.userForm.username,
+            Pwd: this.userForm.password,
+            roles: roles
+          };
+          createUser(data)
+            .then(res => {
+              if (res.status == 200) {
                 this.$message({
-                  message:"创建成功",                
-                  type:"success"
-                })
-              }else{
-                 this.$message({
-                  message:"创建失败",                
-                  type:"error"
-                })
+                  message: "创建成功",
+                  type: "success"
+                });
+              } else {
+                this.$message({
+                  message: "创建失败",
+                  type: "error"
+                });
               }
-              this.loading = false
-            }).catch(() => {
-              this.loading = false
+              this.loading = false;
             })
-          }
-        })
-      },
-      lazyCreate(){
-        throttle(this.create,5000)
-      }
-    }   
+            .catch(() => {
+              this.loading = false;
+            });
+        }
+      });
+    },
+    lazyCreate() {
+      this.lazyCreateObj();
+    },
   }
+};
 </script>
 
 <style scoped>
-  .userCard{
-    height: 500px;
-    width: 420px;
-    margin: 0 auto;
-    top: 50%;
-    transform: translateY(+20%)
-  }
+.userCard {
+  height: 500px;
+  width: 420px;
+  margin: 0 auto;
+  top: 50%;
+  transform: translateY(+20%);
+}
 
-  .form{
-    position: absolute;
-    left: 0;
-    right: 0;
-    width: 400px;
-    padding: 35px 35px 15px 35px;
-    margin: 0 auto;
-    top: 0
-  }
-  .title{
-    font-size: 25px;
-    color:gray;
-    margin: 0px auto 40px auto;
-    text-align: center;
-    font-weight: bold;
-  }
-  /* .el-form-item {
+.form {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 400px;
+  padding: 35px 35px 15px 35px;
+  margin: 0 auto;
+  top: 0;
+}
+.title {
+  font-size: 25px;
+  color: gray;
+  margin: 0px auto 40px auto;
+  text-align: center;
+  font-weight: bold;
+}
+/* .el-form-item {
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(0, 0, 0, 0.1);
     border-radius: 5px;

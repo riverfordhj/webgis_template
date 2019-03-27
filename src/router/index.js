@@ -76,7 +76,7 @@ export const constantRouterMap = [{
   {
     path: '/DataManagement',
     component: Layout,
-    redirect: '/view/table',
+    redirect: '/DataManagement/spatialData',
     name: 'DataManagement',
     meta: {
       title: '数据目录',
@@ -159,11 +159,7 @@ export const constantRouterMap = [{
       }
     }, ]
   },
-  {
-    path: '*',
-    redirect: '/404',
-    hidden: true
-  }
+  
 ]
 
 export default new Router({
@@ -177,7 +173,7 @@ export default new Router({
 export const asyncRouterMap = [{
     path: '/UserManagement',
     component: Layout,
-    redirect: '/view/blank',
+    redirect: '/UserManagement/modifyPassword',
     name: 'UserManagement',
     alwaysShow: true,
     meta: {
@@ -207,5 +203,9 @@ export const asyncRouterMap = [{
         }
       }
     ]
+  },{
+    path: '*',
+    redirect: '/404',
+    hidden: true
   }]
   

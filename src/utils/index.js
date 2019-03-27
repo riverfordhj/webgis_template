@@ -76,11 +76,11 @@ export function param2Obj(url) {
   }
   return JSON.parse(
     '{"' +
-      decodeURIComponent(search)
-        .replace(/"/g, '\\"')
-        .replace(/&/g, '","')
-        .replace(/=/g, '":"') +
-      '"}'
+    decodeURIComponent(search)
+    .replace(/"/g, '\\"')
+    .replace(/&/g, '","')
+    .replace(/=/g, '":"') +
+    '"}'
   )
 }
 
@@ -95,7 +95,7 @@ export function getTime(type) {
 export function debounce(func, wait, immediate) {
   let timeout, args, context, timestamp, result
 
-  const later = function() {
+  const later = function () {
     // 据上一次触发时间间隔
     const last = +new Date() - timestamp
 
@@ -112,7 +112,7 @@ export function debounce(func, wait, immediate) {
     }
   }
 
-  return function(...args) {
+  return function (...args) {
     context = this
     timestamp = +new Date()
     const callNow = immediate && !timeout
@@ -127,12 +127,12 @@ export function debounce(func, wait, immediate) {
   }
 }
 
-export function throttle(fn, wait=500) {
+export function throttle(fn, wait = 3000) {
   let timer;
   return function (...args) {
-      if(timer == null) { // undefined == null // true undefined === null //false 这里不要写成 严格相等 不然永远执行不进去
-          timer = setTimeout(() => timer = null, wait)
-          return fn.apply(this, args);
-      }
+    if (timer == null) { // undefined == null // true undefined === null //false 这里不要写成 严格相等 不然永远执行不进去
+      timer = setTimeout(() => timer = null, wait)
+      return fn.apply(this, args);
+    }
   }
 }
