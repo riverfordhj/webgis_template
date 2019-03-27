@@ -102,8 +102,10 @@ export default {
 .dashboard-editor-container {
   padding: 32px;
   background-color: rgb(240, 242, 245);
+  // background-color: rgb(10, 38, 80);
   .chart-wrapper {
     background: #fff;
+    // background: rgb(6, 2, 48);
     padding: 16px 16px 0;
     margin-bottom: 32px;
   }

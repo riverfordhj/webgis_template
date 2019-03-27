@@ -173,9 +173,9 @@ video {
 
 #form {
   position: absolute;
-  right: 50px;
+  right: 5em;
   top: 25%;
-  width: 400px;
+  width: 20%;
  
 }
 

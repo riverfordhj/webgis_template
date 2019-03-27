@@ -41,7 +41,7 @@ export const constantRouterMap = [{
     hidden: true,
     children: [{
       path: 'dashboard',
-      component: () => import('@/views/dashboard/admin/index')
+      component: () => import('@/views/dashboard/testDashboard/index')
     }]
   },
   {
