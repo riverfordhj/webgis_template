@@ -65,7 +65,7 @@ export const constantRouterMap = [{
       {
         "path": "cesium",
         name: 'cesium',
-        component: () => import('@/views/map/cesium/index'),
+        component: () => import('@/views/map/cesium/index1'),
         meta: {
           title: '三维',
           icon: '3dmap'

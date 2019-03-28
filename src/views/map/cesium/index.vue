@@ -129,7 +129,7 @@ export default {
   },
   methods: {
     CreatMap(self) {
-      Init(jsondata, this.checked, self);
+      Init(jsondata, self);
     },
     CreatTree() {
       this.traversing();

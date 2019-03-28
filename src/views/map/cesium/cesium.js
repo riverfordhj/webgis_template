@@ -1,7 +1,7 @@
 import Cesium from 'cesium/Cesium';
 import widgets from 'cesium/Widgets/widgets.css';
 
-export const Init = function (jsondata, isCheck,self) {
+export const Init = function (jsondata, self) {
 
   Cesium.Ion.defaultAccessToken =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5MjMyYjZiMC1lZmY1LTQzNmEtODg1NS01NmQzMmE2NWY2ZjMiLCJpZCI6NDQ1MSwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MDg4NTM2Mn0.7OzWWlmUmJv_EJo0RFpuiL2G_KLgZBENAAXOgU1O1qM';
@@ -23,7 +23,7 @@ export const Init = function (jsondata, isCheck,self) {
   //   dataSource: undefined,
   //   baselayershow: isCheck
   // };
-  // AddJsonLayer(viewer, jsondata, true, homeData);
+  AddJsonLayer(self.cesiumObjs.viewer, jsondata, true);
 
   // debugger
   // Load3dtiles(viewer, '//192.168.5.51/ldata/djc/tileset.json', true, homeData);
@@ -205,7 +205,7 @@ function AddImageryLayer(viewer, id) {
   }
 }
 
-export function AddJsonLayer(viewer, jsondata, isFlyTo, homeData) {
+export function AddJsonLayer(viewer, jsondata, isFlyTo) {
   var geojsonOptions = {
     clampToGround: true
   };
