@@ -52,6 +52,9 @@ const layer_resources = {
         case "二维矢量":
           commit('ADD_ESRI_RESOURCES', data)      
           break;
+        case "BIM":
+          commit('ADD_CESIUM_RESOURCES', data)
+          break;
         case "三维倾斜测量":
           commit('ADD_CESIUM_RESOURCES', data)
           break;

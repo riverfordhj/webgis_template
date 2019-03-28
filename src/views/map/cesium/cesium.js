@@ -114,10 +114,25 @@ function Load3dtiles(viewer, url, isFlyTo, homeData, string) {
   });
 }
   
-export function Load3dtiles1(url, viewer) {
+export function Load3dtiles1(url, viewer, arr) {
   var tileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
     url: url,
   }));
+
+  if(arr){
+    tileset.readyPromise.then(function () {
+      var longitude = 100.89544722222222;
+      var latitude =  25.40965 ;
+      var height = 1968;
+      var heading = 0;
+      var position = Cesium.Cartesian3.fromDegrees(longitude, latitude, height);
+      var mat = Cesium.Transforms.eastNorthUpToFixedFrame(position);
+      var rotationX = Cesium.Matrix4.fromRotationTranslation(Cesium.Matrix3.fromRotationZ(Cesium.Math.toRadians(heading)));
+      Cesium.Matrix4.multiply(mat, rotationX, mat);
+      tileset._root.transform = mat;
+    })
+  }
+
   return tileset;
 }
 

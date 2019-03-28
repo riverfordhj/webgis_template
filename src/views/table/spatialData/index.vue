@@ -34,6 +34,7 @@
             </el-dropdown>
           </template>
       </el-table-column> -->
+      <el-table-column prop="position" label="地理位置" align="center"></el-table-column>
       <el-table-column prop="serverAddress" label="服务地址 / id" align="center"></el-table-column>
       <el-table-column prop="person" label="保存人员" align="center"></el-table-column>
       <el-table-column prop="phone" label="电话" align="center"></el-table-column>

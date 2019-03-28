@@ -83,7 +83,8 @@ export default {
         roles: [{ required: true, trigger: "change", message: "角色不能为空" }]
       },
       passwordType: "password",
-      loading: false
+      loading: false,
+      lazyCreateObj:throttle(this.create, 5000)
     };
   },
   methods: {
@@ -92,8 +93,7 @@ export default {
         username: "",
         password: "",
         confirmPsd: "",
-        roles: [],
-        lazyCreateObj:throttle(this.create, 5000)
+        roles: [],       
       };
     },
     create() {
@@ -132,7 +132,7 @@ export default {
     },
     lazyCreate() {
       this.lazyCreateObj();
-    },
+    }
   }
 };
 </script>
