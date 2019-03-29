@@ -89,7 +89,16 @@ export default {
       // });
 
       this.chart.setOption({
-        backgroundColor: "#FFFAF0",
+        title: {
+          text: '云南市地图',
+          left: 'center',
+          textStyle: {
+            fontWeight: 'bold',
+            fontSize: 25,
+            color: "white"
+          }
+        },
+        // backgroundColor: "#87CEEB",
         geo: {
           // 这个是重点配置区
           map: "云南", // 表示中国地图
@@ -98,17 +107,46 @@ export default {
             normal: {
               show: false, // 是否显示对应地名
               textStyle: {
-                color: "rgba(255,255,255,1)"
+                // color: "rgba(255,255,255,1)"
+                color:"#333",                //文字颜色
+                fontStyle:"normal",         //italic斜体  oblique倾斜
+                fontWeight:"normal",        //文字粗细bold   bolder   lighter  100 | 200 | 300 | 400...
+                fontFamily:"sans-serif",    //字体系列
+                fontSize:18,                 //字体大小
               }
             }
           },
           itemStyle: {
+            // normal: {
+            //   areaColor: "rgba(124, 205, 124, 0.8)",
+            //   borderColor: "rgba(255,255,255,0.5)"
+            // },
+            // emphasis: {
+            //   areaColor: "#CAFF70"
+            // }
             normal: {
-              areaColor: "rgba(124, 205, 124, 0.8)",
-              borderColor: "rgba(255,255,255,0.5)"
+              color:"#9BCD9B",                //颜色
+              borderColor:"#000",        //边框颜色
+              borderWidth:0,              //柱条的描边宽度，默认不描边。
+              // borderType:"solid",         //柱条的描边类型，默认为实线，支持 'dashed', 'dotted'。
+              barBorderRadius:25,          //柱形边框圆角半径，单位px，支持传入数组分别指定柱形4个圆角半径。
+              shadowBlur: 8,              //图形阴影的模糊大小。
+              shadowColor:"#000",         //阴影颜色
+              // shadowOffsetX:0,            //阴影水平方向上的偏移距离。
+              // shadowOffsetY:0,            //阴影垂直方向上的偏移距离。
+              opacity:1,          
             },
             emphasis: {
-              areaColor: "#CAFF70"
+              color:"#ADFF2F",                //颜色
+              borderColor:"#000",        //边框颜色
+              borderWidth:0,              //柱条的描边宽度，默认不描边。
+              borderType:"solid",         //柱条的描边类型，默认为实线，支持 'dashed', 'dotted'。
+              barBorderRadius:0,          //柱形边框圆角半径，单位px，支持传入数组分别指定柱形4个圆角半径。
+              shadowBlur:10,              //图形阴影的模糊大小。
+              shadowColor:"#000",         //阴影颜色
+              shadowOffsetX:0,            //阴影水平方向上的偏移距离。
+              shadowOffsetY:0,            //阴影垂直方向上的偏移距离。
+              opacity:1,          
             }
           }
         },

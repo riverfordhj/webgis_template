@@ -11,7 +11,7 @@
         </div>    
       </el-col>
       <el-col :xs="24" :sm="12" :md="12" :lg="12">
-        <div class="chart-wrapper">
+        <div style="background-color:#87CEEB" class="chart-wrapper">
           <map-chart :height="'634px'" />          
         </div>
       </el-col>
