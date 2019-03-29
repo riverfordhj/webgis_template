@@ -201,7 +201,17 @@ export const asyncRouterMap = [{
           icon: 'modifyPsd',
           // roles: [] 
         }
-      }
+      },
+      // {
+      //   path: 'findPassword',
+      //   name: 'findPassword',
+      //   component: () => import('@/views/user/findPwd'),
+      //   meta: { 
+      //     title: '找回密码', 
+      //     icon: 'modifyPsd',
+      //     // roles: [] 
+      //   }
+      // }
     ]
   },{
     path: '*',

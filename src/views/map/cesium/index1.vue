@@ -83,6 +83,7 @@
       },
       react(){
         this.tree_data = [];
+        this.defaultChecked = [];
         this.cesium_resources.map((d, i) => {
           this.creatTree(d.name, i);
           this.addLayers(d);
