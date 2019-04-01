@@ -10,6 +10,8 @@ import { debounce } from "@/utils";
 import "../../../../../node_modules/echarts/map/js/province/yunnan.js";
 import json from "../../../../../node_modules/echarts/map/json/province/yunnan.json";
 
+import yunnan_pt from "@/assets/json/yunnan_pt.json";
+
 const animationDuration = 6000;
 
 export default {
@@ -41,9 +43,9 @@ export default {
     }, 100);
     window.addEventListener("resize", this.__resizeHandler);
 
-    const sidebarElm = document.getElementsByClassName('sidebar-container')[0]
+    const sidebarElm = document.getElementsByClassName("sidebar-container")[0];
     // sidebarElm.addEventListener('transitionend', this.__resizeHandler)
-    sidebarElm.addEventListener('transitionend', this.sidebarResizeHandler)
+    sidebarElm.addEventListener("transitionend", this.sidebarResizeHandler);
   },
   beforeDestroy() {
     if (!this.chart) {
@@ -55,11 +57,12 @@ export default {
   },
   methods: {
     sidebarResizeHandler(e) {
-      if (e.propertyName === 'width') {
-        this.__resizeHandler()
+      if (e.propertyName === "width") {
+        this.__resizeHandler();
       }
     },
     initChart() {
+      console.log(yunnan_pt);
       // echarts.registerMap("yunnan", json);
       this.chart = echarts.init(this.$el, "macarons");
       // this.chart.setOption({
@@ -90,12 +93,12 @@ export default {
 
       this.chart.setOption({
         title: {
-          text: '云南市地图',
-          left: 'center',
+          text: "云南市地图",
+          left: "center",
           textStyle: {
-            fontWeight: 'bold',
+            fontWeight: "bold",
             fontSize: 25,
-            color: "white"
+            color: "black"
           }
         },
         // backgroundColor: "#87CEEB",
@@ -103,60 +106,100 @@ export default {
           // 这个是重点配置区
           map: "云南", // 表示中国地图
           roam: true,
-          label: {
-            normal: {
-              show: false, // 是否显示对应地名
-              textStyle: {
-                // color: "rgba(255,255,255,1)"
-                color:"#333",                //文字颜色
-                fontStyle:"normal",         //italic斜体  oblique倾斜
-                fontWeight:"normal",        //文字粗细bold   bolder   lighter  100 | 200 | 300 | 400...
-                fontFamily:"sans-serif",    //字体系列
-                fontSize:18,                 //字体大小
-              }
-            }
-          },
+          // label: {
+          //   normal: {
+          //     show: true, // 是否显示对应地名
+          //     textStyle: {
+          //       // color: "rgba(255,255,255,1)"
+          //       color: "#333", //文字颜色
+          //       fontStyle: "normal", //italic斜体  oblique倾斜
+          //       fontWeight: "normal", //文字粗细bold   bolder   lighter  100 | 200 | 300 | 400...
+          //       fontFamily: "sans-serif", //字体系列
+          //       fontSize: 18 //字体大小
+          //     }
+          //   }
+          // },
           itemStyle: {
-            // normal: {
-            //   areaColor: "rgba(124, 205, 124, 0.8)",
-            //   borderColor: "rgba(255,255,255,0.5)"
-            // },
-            // emphasis: {
-            //   areaColor: "#CAFF70"
-            // }
             normal: {
-              color:"#9BCD9B",                //颜色
-              borderColor:"#000",        //边框颜色
-              borderWidth:0,              //柱条的描边宽度，默认不描边。
+              // color: "#9BCD9B", //颜色
+              borderColor: "#000", //边框颜色
+              borderWidth: 0, //柱条的描边宽度，默认不描边。
               // borderType:"solid",         //柱条的描边类型，默认为实线，支持 'dashed', 'dotted'。
-              barBorderRadius:25,          //柱形边框圆角半径，单位px，支持传入数组分别指定柱形4个圆角半径。
-              shadowBlur: 8,              //图形阴影的模糊大小。
-              shadowColor:"#000",         //阴影颜色
+              barBorderRadius: 25, //柱形边框圆角半径，单位px，支持传入数组分别指定柱形4个圆角半径。
+              shadowBlur: 3, //图形阴影的模糊大小。
+              shadowColor: "#000", //阴影颜色
               // shadowOffsetX:0,            //阴影水平方向上的偏移距离。
               // shadowOffsetY:0,            //阴影垂直方向上的偏移距离。
-              opacity:1,          
-            },
-            emphasis: {
-              color:"#ADFF2F",                //颜色
-              borderColor:"#000",        //边框颜色
-              borderWidth:0,              //柱条的描边宽度，默认不描边。
-              borderType:"solid",         //柱条的描边类型，默认为实线，支持 'dashed', 'dotted'。
-              barBorderRadius:0,          //柱形边框圆角半径，单位px，支持传入数组分别指定柱形4个圆角半径。
-              shadowBlur:10,              //图形阴影的模糊大小。
-              shadowColor:"#000",         //阴影颜色
-              shadowOffsetX:0,            //阴影水平方向上的偏移距离。
-              shadowOffsetY:0,            //阴影垂直方向上的偏移距离。
-              opacity:1,          
+              opacity: 1
+            }
+            // emphasis: {
+            // color: "#ADFF2F", //颜色
+            // borderColor: "#000", //边框颜色
+            // borderWidth: 0, //柱条的描边宽度，默认不描边。
+            // borderType: "solid", //柱条的描边类型，默认为实线，支持 'dashed', 'dotted'。
+            // barBorderRadius: 0, //柱形边框圆角半径，单位px，支持传入数组分别指定柱形4个圆角半径。
+            // shadowBlur: 10, //图形阴影的模糊大小。
+            // shadowColor: "#000", //阴影颜色
+            // shadowOffsetX: 0, //阴影水平方向上的偏移距离。
+            // shadowOffsetY: 0, //阴影垂直方向上的偏移距离。
+            // opacity: 1
+            // }
+          },
+          emphasis: {
+            label: {
+              show: false
             }
           }
         },
         series: [
           {
             type: "scatter",
-            coordinateSystem: "geo" // 对应上方配置
+            coordinateSystem: "geo",
+            data: this.covertData(yunnan_pt),
+            symbolSize: function(val) {
+              return val[2] * 2;
+            },
+            label: {
+              normal: {
+                formatter: "{b}",
+                position: "right",
+                show: false
+              },
+              emphasis: {
+                show: true
+              }
+            },
+            itemStyle: {
+              normal: {
+                color: "purple",
+                shadowBlur: 10,
+                shadowColor: "#333"
+              }
+            }
           }
         ]
       });
+
+      var self = this;
+      this.chart.on("click", function(params) {
+        self.$notify({
+          title: "响应",
+          message: `值为${params.data.value[2]}`,
+          type: "success",
+          duration: 2000
+        });
+      });
+
+    },
+    covertData(json) {
+      let res = [];
+      json.features.map(data => {
+        res.push({
+          name: data.properties.CID,
+          value: data.geometry.coordinates.concat(data.properties.test)
+        });
+      });
+      return res;
     }
   }
 };
