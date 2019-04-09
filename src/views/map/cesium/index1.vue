@@ -25,162 +25,204 @@
         </el-tree>
       </el-card>
     </div>
+    <div class="footer">
+      <div class="footerItem" id="heightDiv">高度:{{cesiumObjs.height}}</div>
+      <!-- <div class="footerItem" id="altitudeDiv">海拔：</div> -->
+      <div class="footerItem" id="latitudeDiv">纬度:{{cesiumObjs.latitude}}</div>
+      <div class="footerItem" id="longitudeDiv">经度:{{cesiumObjs.longitude}}</div>
+    </div>
   </div>
 </template>
 
 <script>
-  import Cesium from "cesium/Cesium";
-  import widgets from "cesium/Widgets/widgets.css";
+import Cesium from "cesium/Cesium";
+import widgets from "cesium/Widgets/widgets.css";
+import CesiumNavigation from "cesium-navigation-es6";
 
-  import ElementUI from "element-ui";
-  import "element-ui/lib/theme-chalk/index.css";
+import ElementUI from "element-ui";
+import "element-ui/lib/theme-chalk/index.css";
 
-  import store from '../../../store'
+import store from "../../../store";
 
-  import {
-    Init,
-    AddJsonLayer,
-    Load3dtiles1,
-    FlyTo_TileSet,
-    FlyTo_JsonData
-  } from "./cesium";
-  import jsondata from "@/assets/json/yunnanshi.json";
+import {
+  Init,
+  AddJsonLayer,
+  Load3dtiles1,
+  FlyTo_TileSet,
+  FlyTo_JsonData
+} from "./cesium";
+import jsondata from "@/assets/json/yunnanshi.json";
 
-  export default {
-    name: '',
-    data() {
-      return {
-        checked: true,
-        tree_data: [],
-        cesium_resources: [],
-        tilesets: new Map(),
-        defaultChecked: [],
-        cesiumObjs: {
-          viewer: undefined
-        }
-      };
-    },
-    computed: {
-      getLayerResources: function() {
-        return this.$store.getters.cesium_resources;
+export default {
+  name: "",
+  data() {
+    return {
+      checked: true,
+      tree_data: [],
+      cesium_resources: [],
+      tilesets: new Map(),
+      defaultChecked: [],
+      cesiumObjs: {
+        viewer: undefined,
+        height: undefined,
+        latitude: undefined,
+        longitude: undefined
       }
-    },
-    watch: {
-      getLayerResources(val) {
-        this.cesium_resources = val;
-        this.react();
-      }
-    },
-    mounted(){
-      var self = this;
-      this.cesium_resources = this.$store.getters.cesium_resources;
-      this.createMap(self);
+    };
+  },
+  computed: {
+    getLayerResources: function() {
+      return this.$store.getters.cesium_resources;
+    }
+  },
+  watch: {
+    getLayerResources(val) {
+      this.cesium_resources = val;
       this.react();
+    }
+  },
+  mounted() {
+    var self = this;
+    this.cesium_resources = this.$store.getters.cesium_resources;
+    this.createMap(self);
+    this.react();
+  },
+  methods: {
+    createMap(self) {
+      Init(jsondata, self, CesiumNavigation);
     },
-    methods: {
-      createMap(self){
-        Init(jsondata, self)
-      },
-      react(){
-        this.tree_data = [];
-        this.defaultChecked = [];
-        this.cesium_resources.map((d, i) => {
-          this.creatTree(d.name, i);
-          this.addLayers(d);
-          this.defaultChecked.push(i);
+    react() {
+      this.tree_data = [];
+      this.defaultChecked = [];
+      this.cesium_resources.map((d, i) => {
+        this.creatTree(d.name, i);
+        this.addLayers(d);
+        this.defaultChecked.push(i);
+      });
+    },
+    creatTree(label, id) {
+      this.tree_data.push({
+        label: label,
+        id: id
+      });
+    },
+    addLayers({ serverAddress, type, name, position }) {
+      //此处以后要改为Map
+      switch (type) {
+        case "二维JSON":
+          var obj = AddJsonLayer(this.cesiumObjs.viewer, serverAddress, true);
+          this.tilesets.set(name, obj);
+          break;
+        case "三维倾斜测量":
+          var obj = Load3dtiles1(serverAddress, this.cesiumObjs.viewer);
+          this.tilesets.set(name, obj);
+          break;
+        case "BIM":
+          var arr = position.split(",");
+          var obj = Load3dtiles1(serverAddress, this.cesiumObjs.viewer, arr);
+          this.tilesets.set(name, obj);
+          break;
+        default:
+          break;
+      }
+    },
+    remove(node, data) {
+      this.tilesets.delete(data.label);
+      this.cesiumObjs.viewer.scene.primitives.removeAll();
+      console.log(this.cesiumObjs.viewer.dataSources.get(0));
+      this.cesiumObjs.viewer.dataSources.remove(
+        this.cesiumObjs.viewer.dataSources.get(0)._entityCollection
+      );
+      // this.cesiumObjs.viewer.entities.removeAll();
+      store.dispatch("RemoveCesiumResources", data.label);
+    },
+    handleCheckChange(data, checked, indeterminate) {
+      var target = this.tilesets.get(data.label);
+      if (data.label.match("模型")) {
+        target.show = checked;
+      } else {
+        target.then(function(dataSource) {
+          dataSource.entities.show = checked;
         });
-      },
-      creatTree(label, id){
-        this.tree_data.push({
-          label: label,
-          id: id
-        });
-      },
-      addLayers({serverAddress, type, name, position}){
-        //此处以后要改为Map
-        switch (type) {
-          case "二维JSON":
-            var obj = AddJsonLayer(this.cesiumObjs.viewer, serverAddress, true);
-            this.tilesets.set(name, obj);
-            break;
-          case "三维倾斜测量":
-            var obj = Load3dtiles1(serverAddress, this.cesiumObjs.viewer);
-            this.tilesets.set(name, obj);
-            break;
-          case "BIM":
-            var arr = position.split(",");
-            var obj = Load3dtiles1(serverAddress, this.cesiumObjs.viewer, arr)
-            this.tilesets.set(name, obj);
-            break;
-          default:
-            break;
-        }
-      },
-      remove(node, data) {
-        this.tilesets.delete(data.label);
-        this.cesiumObjs.viewer.scene.primitives.removeAll();
-        store.dispatch('RemoveCesiumResources', data.label);
-      },
-      handleCheckChange(data, checked, indeterminate) {
-        var target = this.tilesets.get(data.label);
-        if (data.label.match("模型")) {
-          target.show = checked;
-        } else {
-          target.then(function(dataSource) {
-            dataSource.entities.show = checked;
-          });
-        }
-      },
-      handleNodeClick(data) {
-        var target = this.tilesets.get(data.label);
-        if (!target) {
-          return;
-        }
-        if (data.label.match("模型")) {
-          FlyTo_TileSet(target, this.cesiumObjs.viewer);
-        } else {
-          FlyTo_JsonData(target, this.cesiumObjs.viewer);
-        }
-      },
+      }
+    },
+    handleNodeClick(data) {
+      var target = this.tilesets.get(data.label);
+      if (!target) {
+        return;
+      }
+      if (data.label.match("模型")) {
+        FlyTo_TileSet(target, this.cesiumObjs.viewer);
+      } else {
+        FlyTo_JsonData(target, this.cesiumObjs.viewer);
+      }
     }
   }
+};
 </script>
 
 <style scoped>
-  #cesiumContainer {
-    height: calc(100vh - 50px);
-  }
-  .backdrop {
-    display: block;
-    background: rgba(42, 42, 42, 0.9);
-    border-radius: 5px;
-    border: 1px solid #444;
-    padding: 5px 10px;
-    color: #fff;
-    line-height: 150%;
-    font-size: small;
-  }
-  #menu {
-    position: absolute;
-    left: 10px;
-    top: 10px;
-  }
+#cesiumContainer {
+  height: calc(100vh - 50px);
+}
+.backdrop {
+  display: block;
+  background: rgba(42, 42, 42, 0.9);
+  border-radius: 5px;
+  border: 1px solid #444;
+  padding: 5px 10px;
+  color: #fff;
+  line-height: 150%;
+  font-size: small;
+}
+#menu {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+}
 
-  .nowrap {
-    white-space: nowrap;
-  }
+.nowrap {
+  white-space: nowrap;
+}
 
-  /* .backdrop a:link,
+/* .backdrop a:link,
   .backdrop a:visited,
   .backdrop a:hover {
     color: #fff;
   } */
-  .custom-tree-node {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 14px;
-    padding-right: 8px;
-  }
+.custom-tree-node {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  padding-right: 8px;
+}
+
+.footer {
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  position: absolute;
+  z-index: 991;
+  padding: 3px 10px;
+  font-size: 13px;
+  color: #e9e9e9;
+  text-shadow: 2px 2px 2px #000;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.footerItem {
+  float: right;
+  min-width: 80px;
+  margin-right: 20px;
+  font-size: 13px;
+  color: #e9e9e9;
+  text-shadow: 2px 2px 2px #000;
+}
+
+.cesium-widget-credits {
+  display: none !important;
+  visibility: hidden !important;
+}
 </style>

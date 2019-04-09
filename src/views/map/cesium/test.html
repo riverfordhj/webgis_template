@@ -1,0 +1,191 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <script src="https://cesiumjs.org/releases/1.56.1/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesiumjs.org/releases/1.56.1/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+  <style>
+    html,
+    body,
+    cesiumContainer {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .cesium-widget-credits {
+      display: none !important;
+      visibility: hidden !important;
+    }
+
+    .footer {
+      left: 0px;
+      right: 0px;
+      bottom: 0px;
+      position: absolute;
+      z-index: 991;
+      padding: 3px 10px;
+      font-size: 13px;
+      color: #e9e9e9;
+      text-shadow: 2px 2px 2px #000;
+      background-color: rgba(0, 0, 0, .4);
+    }
+
+    .footerItem {
+      float: right;
+      min-width: 80px;
+      margin-right: 20px;
+      font-size: 13px;
+      color: #e9e9e9;
+      text-shadow: 2px 2px 2px #000;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="cesiumContainer"></div>
+  <div class="footer">
+    <div class="footerItem" id="heightDiv">高度：</div>
+    <!-- <div class="footerItem" id="altitudeDiv">海拔：</div> -->
+    <div class="footerItem" id="latitudeDiv">纬度：</div>
+    <div class="footerItem" id="longitudeDiv">经度：</div>
+  </div>
+  <script>
+    Cesium.Ion.defaultAccessToken = 'your_access_token';
+    var viewer = new Cesium.Viewer('cesiumContainer', {
+      geocoder: false, //搜索
+      homeButton: false, //主页 地球回正
+      sceneModePicker: false, //地球平铺 网格  3d/2d选择器
+      baseLayerPicker: true,
+      animation: false, //是否创建动画小器件，左下角仪表
+      selectionIndicator: false,
+      fullscreenButton: false,
+      // infoBox: true,
+      navigationHelpButton: false, //是否显示右上角的帮助按钮
+      timeline: false,
+      // baseLayerPicker: true //图层选择器
+    });
+    //   var provider = new Cesium.WebMapServiceImageryProvider({
+    //   // url : 'http://202.114.148.160:8000/arcgis/services/云南/MyMapService/MapServer/WMSServer?',
+    //   url: "http://localhost:8000/geoserver/webgis/wms?",
+    //   layers : 'webgis:yn_wgs84',
+    //   // parameters: {
+    //   //   service : 'WMS',
+    //   //   format: 'image/png',
+    //   //   transparent: true
+    //   // },
+    //   // crs : 'EPSG:4326',
+    //   // layers : '0',
+    //   parameters : {
+    //     service : 'WMS',
+    //     format: 'image/png',
+    //     transparent: true
+    //   }
+    //   // proxy: new Cesium.DefaultProxy('/proxy/')
+    // })
+    // viewer.imageryLayers.addImageryProvider(provider);
+
+    function getPosition() {
+      //得到当前三维场景
+      var scene = viewer.scene;
+      //得到当前三维场景的椭球体
+      var ellipsoid = scene.globe.ellipsoid;
+      var entity = viewer.entities.add({
+        label: {
+          show: false
+        }
+      });
+
+      var longitudeDiv = document.getElementById("longitudeDiv");
+      var latitudeDiv = document.getElementById("latitudeDiv");
+      var heightDiv = document.getElementById("heightDiv");
+      // var altitudeDiv = document.getElementById("altitudeDiv");
+
+      var longitudeString = null;
+      var latitudeString = null;
+      var height = null;
+      var cartesian = null;
+      // 定义当前场景的画布元素的事件处理
+      var handler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
+      //设置鼠标移动事件的处理函数，这里负责监听x,y坐标值变化
+      handler.setInputAction(function (movement) {
+        //通过指定的椭球或者地图对应的坐标系，将鼠标的二维坐标转换为对应椭球体三维坐标
+        cartesian = viewer.camera.pickEllipsoid(movement.endPosition, ellipsoid);
+        if (cartesian) {
+          //将笛卡尔坐标转换为地理坐标
+          var cartographic = ellipsoid.cartesianToCartographic(cartesian);
+          //将弧度转为度的十进制度表示
+          longitudeString = Cesium.Math.toDegrees(cartographic.longitude);
+          latitudeString = Cesium.Math.toDegrees(cartographic.latitude);
+          //获取相机高度
+          height = Math.ceil(viewer.camera.positionCartographic.height);
+          longitudeDiv.innerText = `经度：${longitudeString.toFixed(4)}`;
+          latitudeDiv.innerText = `纬度：${latitudeString.toFixed(4)}`;
+          heightDiv.innerText = `高度：${height.toFixed(0)}`;
+        } else {
+          // entity.label.show = false;
+        }
+      }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+      //设置鼠标滚动事件的处理函数，这里负责监听高度值变化
+      handler.setInputAction(function (wheelment) {
+        height = Math.ceil(viewer.camera.positionCartographic.height);
+        heightDiv.innerText = `高度：${height}`;
+      }, Cesium.ScreenSpaceEventType.WHEEL);
+    }
+
+    getPosition()
+
+    function show3DCoordinates() {
+      var handler3D = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+      handler3D.setInputAction(function (movement) {
+        var pick = new Cesium.Cartesian2(movement.endPosition.x, movement.endPosition.y);
+        if (pick) {
+          var ray = viewer.camera.getPickRay(pick);
+          var cartesian = viewer.scene.globe.pick(ray, viewer.scene);
+          if (cartesian) {
+            debugger;
+            //世界坐标转地理坐标（弧度）
+            var cartographic = viewer.scene.globe.ellipsoid.cartesianToCartographic(cartesian);
+            if (cartographic) {
+              debugger;
+              //海拔
+              var height = viewer.scene.globe.getHeight(cartographic);
+              //视角海拔高度
+              var he = Math.sqrt(viewer.scene.camera.positionWC.x * viewer.scene.camera.positionWC.x + viewer.scene
+                .camera.positionWC.y * viewer.scene.camera.positionWC.y + viewer.scene.camera.positionWC.z *
+                viewer.scene.camera.positionWC.z);
+              var he2 = Math.sqrt(cartesian.x * cartesian.x + cartesian.y * cartesian.y + cartesian.z *
+                cartesian.z);
+              //地理坐标（弧度）转经纬度坐标
+              var point = [cartographic.longitude / Math.PI * 180, cartographic.latitude / Math.PI * 180];
+              if (!height) {
+                height = 0;
+              }
+              if (!he) {
+                he = 0;
+              }
+              if (!he2) {
+                he2 = 0;
+              }
+              if (!point) {
+                point = [0, 0];
+              }
+              //   coordinatesDiv.innerHTML =
+              //     "<span id='cd_label' style='font-size:13px;text-align:center;font-family:微软雅黑;color:#edffff;'>" +
+              //     "视角海拔高度:" + (he - he2).toFixed(2) + "米" + "&nbsp;&nbsp;&nbsp;&nbsp;海拔:" + height.toFixed(2) +
+              //     "米" + "&nbsp;&nbsp;&nbsp;&nbsp;经度：" + point[0].toFixed(6) + "&nbsp;&nbsp;纬度：" + point[1].toFixed(
+              //       6) + "</span>";
+              // }
+            }
+          }
+        }
+      }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+
+    }
+
+    // show3DCoordinates();
+  </script>
+</body>
+
+</html>

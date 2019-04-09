@@ -26,7 +26,7 @@ export default {
     },
     height: {
       type: String,
-      default: "300px"
+      default: "100%"
     }
   },
   data() {
@@ -121,7 +121,7 @@ export default {
           // },
           itemStyle: {
             normal: {
-              // color: "#9BCD9B", //颜色
+              // color: "#BFEFFF", //颜色
               borderColor: "#000", //边框颜色
               borderWidth: 0, //柱条的描边宽度，默认不描边。
               // borderType:"solid",         //柱条的描边类型，默认为实线，支持 'dashed', 'dotted'。
@@ -171,7 +171,7 @@ export default {
             },
             itemStyle: {
               normal: {
-                color: "purple",
+                color: "#6495ED",
                 shadowBlur: 10,
                 shadowColor: "#333"
               }
@@ -182,12 +182,14 @@ export default {
 
       var self = this;
       this.chart.on("click", function(params) {
-        self.$notify({
-          title: "响应",
-          message: `值为${params.data.value[2]}`,
-          type: "success",
-          duration: 2000
-        });
+        if(params.componentType === "series"){
+          self.$notify({
+            title: "响应",
+            message: `值为${params.data.value[2]}`,
+            type: "success",
+            duration: 2000
+          });
+        }      
       });
 
     },

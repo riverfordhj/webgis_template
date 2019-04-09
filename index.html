@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    .outer {
+      font-size: 0;
+    }
+
+    /* .inner {
+      width: 33.33%;
+      height: 300px;
+      display: inline-block;
+      outline: solid 1px blue;
+    }
+
+    .inner:last-child {
+      margin-right: -5px
+    } */
+
+    .fixed {
+      width: 200px;
+    }
+
+    .fixed,
+    .auto {
+      height: 300px;
+      outline: solid 1px blue;
+    }
+
+
+    .fixed {
+      display: inline-block;
+      vertical-align: top;
+    }
+
+    .auto {
+      margin-left: -200px;
+      padding-left: 200px;
+      box-sizing: border-box;
+      width: 100%;
+      display: inline-block;
+      vertical-align: top;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- <canvas id="myCanvas" style="width:200px;height:100px;border:1px solid #d3d3d3;"></canvas> -->
+  <!-- <div id="bulb" style="width: 50px;height: 50px;border-radius: 50%;"></div> -->
+  <!-- <div class="outer">
+    <div class="inner"></div>
+    <div class="inner"></div>
+    <div class="inner"></div>
+  </div> -->
+  <div class="outer">
+    <div class="fixed"></div>
+    <div class="auto"></div>
+  </div>
+
+
+
+
+  <script>
+    // var c=document.getElementById("myCanvas");
+    // var ctx=c.getContext("2d");
+    // ctx.beginPath();
+    // ctx.arc(100,75,20,0,2*Math.PI);
+    // ctx.stroke();
+    // ctx.fillStyle = 'green';
+    // ctx.fill();
+
+    function sleep(duration) {
+      return new Promise(resolve => {
+        setTimeout(resolve, duration)
+      })
+    }
+
+    async function changeColor(duration, color) {
+      document.getElementById("bulb").style.background = color;
+      await sleep(duration);
+    }
+
+    async function main() {
+      while (true) {
+        await changeColor(3000, "red");
+        await changeColor(2000, "green");
+        await changeColor(1000, "yellow");
+      }
+    }
+
+    // main();
+  </script>
+</body>
+
+</html>

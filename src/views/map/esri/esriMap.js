@@ -301,7 +301,7 @@ export const createMap = function (esriLoader, options, self, yunnanJson, store)
         //地图
         const map = new Map({
           basemap: 'satellite',
-          // layers: [yunnanlayer] //,self.xbLayer,  gralayer
+          // layers: [testLayer] //,self.xbLayer,  gralayer
         });
 
         self.view = new MapView({
@@ -323,7 +323,6 @@ export const createMap = function (esriLoader, options, self, yunnanJson, store)
 
         // AddLayerByOnline("2044c12a6d784ba89da3427a07ce9b93", InitWidget);
         // AddLayerByOnline("5f58f6fe562c4aa59e1d9b470945377d");
-
       })
     .catch(err => {
       console.error(err);

@@ -1,12 +1,24 @@
 import Cesium from 'cesium/Cesium';
 import widgets from 'cesium/Widgets/widgets.css';
 
-export const Init = function (jsondata, self) {
+export const Init = function (jsondata, self,CesiumNavigation) {
 
   Cesium.Ion.defaultAccessToken =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5MjMyYjZiMC1lZmY1LTQzNmEtODg1NS01NmQzMmE2NWY2ZjMiLCJpZCI6NDQ1MSwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MDg4NTM2Mn0.7OzWWlmUmJv_EJo0RFpuiL2G_KLgZBENAAXOgU1O1qM';
 
-  self.cesiumObjs.viewer = new Cesium.Viewer('cesiumContainer');
+  self.cesiumObjs.viewer = new Cesium.Viewer('cesiumContainer', {
+    geocoder: false, //搜索
+    homeButton: false, //主页 地球回正
+    sceneModePicker: false, //地球平铺 网格  3d/2d选择器
+    baseLayerPicker: true,
+    animation: false, //是否创建动画小器件，左下角仪表
+    selectionIndicator: false,
+    fullscreenButton: false,
+    // infoBox: true,
+    navigationHelpButton: false, //是否显示右上角的帮助按钮
+    timeline: false,
+    // baseLayerPicker: true //图层选择器
+  });
   // Load Cesium World Terrain
   self.cesiumObjs.viewer.terrainProvider = Cesium.createWorldTerrain({
     requestWaterMask: true, // required for water effects
@@ -23,7 +35,9 @@ export const Init = function (jsondata, self) {
   //   dataSource: undefined,
   //   baselayershow: isCheck
   // };
-  AddJsonLayer(self.cesiumObjs.viewer, jsondata, true);
+  // AddJsonLayer(self.cesiumObjs.viewer, jsondata, true);
+
+  // AddWMS(self.cesiumObjs.viewer);
 
   // debugger
   // Load3dtiles(viewer, '//192.168.5.51/ldata/djc/tileset.json', true, homeData);
@@ -77,7 +91,22 @@ export const Init = function (jsondata, self) {
   //   TrueChecked.call(obj,"3DTiles",viewer);
   // });
 
+  getPosition(self.cesiumObjs.viewer)
 
+  var options = {};
+  // 用于在使用重置导航重置地图视图时设置默认视图控制。接受的值是Cesium.Cartographic 和 Cesium.Rectangle.
+  options.defaultResetView = Cesium.Rectangle.fromDegrees(80, 22, 130, 50);
+  // 用于启用或禁用罗盘。true是启用罗盘，false是禁用罗盘。默认值为true。如果将选项设置为false，则罗盘将不会添加到地图中。
+  options.enableCompass= true;
+  // 用于启用或禁用缩放控件。true是启用，false是禁用。默认值为true。如果将选项设置为false，则缩放控件将不会添加到地图中。
+  options.enableZoomControls= true;
+  // 用于启用或禁用距离图例。true是启用，false是禁用。默认值为true。如果将选项设置为false，距离图例将不会添加到地图中。
+  options.enableDistanceLegend= true;
+  // 用于启用或禁用指南针外环。true是启用，false是禁用。默认值为true。如果将选项设置为false，则该环将可见但无效。
+  options.enableCompassOuterRing= true;
+  
+  // let viewer = new Cesium.Viewer("cesiumContainer");
+  CesiumNavigation(self.cesiumObjs.viewer, options);
 }
 
 export function FlyTo_TileSet(tileset,viewer){
@@ -207,7 +236,8 @@ function AddImageryLayer(viewer, id) {
 
 export function AddJsonLayer(viewer, jsondata, isFlyTo) {
   var geojsonOptions = {
-    clampToGround: true
+    clampToGround: true,
+    fill: Cesium.Color.RED
   };
 
   var dataPromise = Cesium.GeoJsonDataSource.load(jsondata, geojsonOptions);
@@ -353,4 +383,69 @@ function AddModel(viewer) {
     })
   );
   viewer.zoomTo(tileset);
+}
+
+function AddWMS(viewer) {
+  var provider = new Cesium.WebMapServiceImageryProvider({
+    url : 'http://202.114.148.160:8000/arcgis/services/云南/MyMapService/MapServer/WMSServer?',
+    // url: "http://localhost:8000/geoserver/webgis/wms?",
+    // layers : 'webgis:yn_wgs84',
+    // parameters: {
+    //   service : 'WMS',
+    //   format: 'image/png',
+    //   transparent: true
+    // },
+    crs : 'EPSG:4326',
+    layers : '0',
+    parameters : {
+      service : 'WMS',
+      format: 'image/png',
+      transparent: true
+    }
+    // proxy: new Cesium.DefaultProxy('/proxy/')
+  })
+  viewer.imageryLayers.addImageryProvider(provider);
+}
+
+function getPosition(viewer) {
+  //得到当前三维场景
+  var scene = viewer.scene;
+  //得到当前三维场景的椭球体
+  var ellipsoid = scene.globe.ellipsoid;
+
+  var longitudeDiv = document.getElementById("longitudeDiv");
+  var latitudeDiv = document.getElementById("latitudeDiv");
+  var heightDiv = document.getElementById("heightDiv");
+  // var altitudeDiv = document.getElementById("altitudeDiv");
+
+  var longitudeString = null;
+  var latitudeString = null;
+  var height = null;
+  var cartesian = null;
+  // 定义当前场景的画布元素的事件处理
+  var handler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
+  //设置鼠标移动事件的处理函数，这里负责监听x,y坐标值变化
+  handler.setInputAction(function (movement) {
+    //通过指定的椭球或者地图对应的坐标系，将鼠标的二维坐标转换为对应椭球体三维坐标
+    cartesian = viewer.camera.pickEllipsoid(movement.endPosition, ellipsoid);
+    if (cartesian) {
+      //将笛卡尔坐标转换为地理坐标
+      var cartographic = ellipsoid.cartesianToCartographic(cartesian);
+      //将弧度转为度的十进制度表示
+      longitudeString = Cesium.Math.toDegrees(cartographic.longitude);
+      latitudeString = Cesium.Math.toDegrees(cartographic.latitude);
+      //获取相机高度
+      height = Math.ceil(viewer.camera.positionCartographic.height);
+      longitudeDiv.innerText = `经度：${longitudeString.toFixed(4)}`;
+      latitudeDiv.innerText = `纬度：${latitudeString.toFixed(4)}`;
+      heightDiv.innerText = `高度：${height.toFixed(0)}`;
+    } else {
+      // entity.label.show = false;
+    }
+  }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+  //设置鼠标滚动事件的处理函数，这里负责监听高度值变化
+  handler.setInputAction(function (wheelment) {
+    height = Math.ceil(viewer.camera.positionCartographic.height);
+    heightDiv.innerText = `高度：${height}`;
+  }, Cesium.ScreenSpaceEventType.WHEEL);
 }
