@@ -66,25 +66,25 @@
       timeline: false,
       // baseLayerPicker: true //图层选择器
     });
-    //   var provider = new Cesium.WebMapServiceImageryProvider({
-    //   // url : 'http://202.114.148.160:8000/arcgis/services/云南/MyMapService/MapServer/WMSServer?',
-    //   url: "http://localhost:8000/geoserver/webgis/wms?",
-    //   layers : 'webgis:yn_wgs84',
-    //   // parameters: {
-    //   //   service : 'WMS',
-    //   //   format: 'image/png',
-    //   //   transparent: true
-    //   // },
-    //   // crs : 'EPSG:4326',
-    //   // layers : '0',
-    //   parameters : {
-    //     service : 'WMS',
-    //     format: 'image/png',
-    //     transparent: true
-    //   }
-    //   // proxy: new Cesium.DefaultProxy('/proxy/')
-    // })
-    // viewer.imageryLayers.addImageryProvider(provider);
+    var provider = new Cesium.WebMapServiceImageryProvider({
+      // url : 'http://202.114.148.160:8000/arcgis/services/云南/MyMapService/MapServer/WMSServer?',
+      url: "http://localhost:8000/geoserver/webgis/wms?",
+      layers: 'webgis:yn_wgs84',
+      // parameters: {
+      //   service : 'WMS',
+      //   format: 'image/png',
+      //   transparent: true
+      // },
+      // crs : 'EPSG:4326',
+      // layers : '0',
+      parameters: {
+        service: 'WMS',
+        format: 'image/png',
+        transparent: true
+      }
+      // proxy: new Cesium.DefaultProxy('/proxy/')
+    })
+    viewer.imageryLayers.addImageryProvider(provider);
 
     function getPosition() {
       //得到当前三维场景

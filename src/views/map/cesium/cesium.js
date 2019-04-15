@@ -35,7 +35,7 @@ export const Init = function (jsondata, self,CesiumNavigation) {
   //   dataSource: undefined,
   //   baselayershow: isCheck
   // };
-  // AddJsonLayer(self.cesiumObjs.viewer, jsondata, true);
+  AddJsonLayer(self.cesiumObjs.viewer, jsondata, true);
 
   // AddWMS(self.cesiumObjs.viewer);
 
@@ -91,7 +91,7 @@ export const Init = function (jsondata, self,CesiumNavigation) {
   //   TrueChecked.call(obj,"3DTiles",viewer);
   // });
 
-  getPosition(self.cesiumObjs.viewer)
+  getPosition(self)
 
   var options = {};
   // 用于在使用重置导航重置地图视图时设置默认视图控制。接受的值是Cesium.Cartographic 和 Cesium.Rectangle.
@@ -407,15 +407,15 @@ function AddWMS(viewer) {
   viewer.imageryLayers.addImageryProvider(provider);
 }
 
-function getPosition(viewer) {
+function getPosition(self) {
   //得到当前三维场景
-  var scene = viewer.scene;
+  var scene = self.cesiumObjs.viewer.scene;
   //得到当前三维场景的椭球体
   var ellipsoid = scene.globe.ellipsoid;
 
-  var longitudeDiv = document.getElementById("longitudeDiv");
-  var latitudeDiv = document.getElementById("latitudeDiv");
-  var heightDiv = document.getElementById("heightDiv");
+  // var longitudeDiv = document.getElementById("longitudeDiv");
+  // var latitudeDiv = document.getElementById("latitudeDiv");
+  // var heightDiv = document.getElementById("heightDiv");
   // var altitudeDiv = document.getElementById("altitudeDiv");
 
   var longitudeString = null;
@@ -427,7 +427,7 @@ function getPosition(viewer) {
   //设置鼠标移动事件的处理函数，这里负责监听x,y坐标值变化
   handler.setInputAction(function (movement) {
     //通过指定的椭球或者地图对应的坐标系，将鼠标的二维坐标转换为对应椭球体三维坐标
-    cartesian = viewer.camera.pickEllipsoid(movement.endPosition, ellipsoid);
+    cartesian = self.cesiumObjs.viewer.camera.pickEllipsoid(movement.endPosition, ellipsoid);
     if (cartesian) {
       //将笛卡尔坐标转换为地理坐标
       var cartographic = ellipsoid.cartesianToCartographic(cartesian);
@@ -435,17 +435,17 @@ function getPosition(viewer) {
       longitudeString = Cesium.Math.toDegrees(cartographic.longitude);
       latitudeString = Cesium.Math.toDegrees(cartographic.latitude);
       //获取相机高度
-      height = Math.ceil(viewer.camera.positionCartographic.height);
-      longitudeDiv.innerText = `经度：${longitudeString.toFixed(4)}`;
-      latitudeDiv.innerText = `纬度：${latitudeString.toFixed(4)}`;
-      heightDiv.innerText = `高度：${height.toFixed(0)}`;
+      height = Math.ceil(self.cesiumObjs.viewer.camera.positionCartographic.height);
+      self.cesiumObjs.latitude = longitudeString.toFixed(2);
+      self.cesiumObjs.longitude = latitudeString.toFixed(2);
+      self.cesiumObjs.height = height.toFixed(0);
     } else {
       // entity.label.show = false;
     }
   }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
   //设置鼠标滚动事件的处理函数，这里负责监听高度值变化
   handler.setInputAction(function (wheelment) {
-    height = Math.ceil(viewer.camera.positionCartographic.height);
-    heightDiv.innerText = `高度：${height}`;
+    height = Math.ceil(self.cesiumObjs.viewer.camera.positionCartographic.height);
+    self.cesiumObjs.height = height.toFixed(0);
   }, Cesium.ScreenSpaceEventType.WHEEL);
 }

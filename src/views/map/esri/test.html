@@ -1,45 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
   <style>
-    html,body,#map{
+    html,
+    body,
+    #map {
       height: 100%;
-      width: 100%
+      width: 100%;
+      margin: 0;
+      padding: 0
     }
   </style>
   <link rel="stylesheet" href="https://js.arcgis.com/4.11/esri/css/main.css">
   <script src="https://js.arcgis.com/4.11/"></script>
+  <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdn.bootcss.com/html2canvas/0.5.0-alpha1/html2canvas.min.js"></script>
+
 </head>
+
 <body>
   <div id="map"></div>
+  <!-- <canvas id="myCanvas" width="200" height="100" style="border:1px solid #d3d3d3;"></canvas>
+  <img id="img" style="width:800px;height:800px" alt=""> -->
+  <button id="test">test</button>
 </body>
 <script>
   require([
-      "esri/Map",
-      "esri/views/MapView",
-      "esri/layers/FeatureLayer"
-    ], function(Map, MapView, FeatureLayer) {
-      var layer = new FeatureLayer ({
-        // url: "http://202.114.148.160:8000/arcgis/rest/services/LinYeMapService/LinyeMapService/MapServer/0"
-        url: "http://202.114.148.160:8000/arcgis/rest/services/云南/云南市/MapServer/0"
-      })
+    "esri/Map",
+    "esri/views/MapView",
+    "esri/layers/FeatureLayer",
+    "esri/widgets/Print",
+    "esri/widgets/Expand",
+  ], function (Map, MapView, FeatureLayer, Print, Expand) {
+    const labelClass = {
+      // autocasts as new LabelClass()
+      symbol: {
+        type: "text", // autocasts as new TextSymbol()
+        color: "green",
+        haloColor: "black",
+        font: { // autocast as new Font()
+          family: "playfair-display",
+          size: 12,
+          weight: "bold"
+        }
+      },
+      labelPlacement: "center-right",
+      labelExpressionInfo: {
+        // expression: "$feature.Name",
+        // expression:([$feature.Name, $feature.OBJECTID], TextFormatting.NewLine)
+        expression:"$feature.XBH"
+      }
+    };
 
-      var map = new Map({
-        basemap: "topo-vector",
-        layers: [layer]
-      });
+    // function createTextSymbol(color) {
+    //   return {
+    //     type: "text", // autocasts as new TextSymbol()
+    //     font: {
+    //       size: 12,
+    //       weight: "bold"
+    //     },
+    //     color: "white",
+    //     haloColor: color,
+    //     haloSize: 1
+    //   };
+    // }
+    // // const nameArcade = "$feature.Name + $feature.OBJECTID";
+    // const nameArcade = "$feature.Name,$feature.OBJECTID";
+    // const nameClass = {
+    //   labelPlacement: "below-right",
+    //   labelExpressionInfo: {
+    //     expression: nameArcade
+    //   },
+    //   // minScale: minScale
+    // };
+    // nameClass.symbol = createTextSymbol("black");
 
-      var view = new MapView({
-        container: "map",
-        map: map,
-        // center: [-118.71511,34.09042],
-        zoom: 11
-      });
+    // var layer = new FeatureLayer({
+    //   // url: "http://202.114.148.160:8000/arcgis/rest/services/LinYeMapService/LinyeMapService/MapServer/0",
+    //   url: "http://223.255.43.21:6080/arcgis/rest/services/WHLD_Group/WHLD_2019/MapServer/0",
+    //   // url: "http://202.114.148.160:8000/arcgis/rest/services/云南/云南市/MapServer/0",
+    //   labelingInfo: [labelClass]
+    // })
 
+    var layer = new FeatureLayer({
+      // url:"http://202.114.148.160:8000/arcgis/rest/services/LinYeMapService/whld_2018/MapServer/0",
+      // url:"http://223.255.43.21:6080/arcgis/rest/services/WHLD_Group/WHLD/MapServer",
+      // url:"http://202.114.148.160:8000/arcgis/rest/services/LinYeMapService/whld_2019_1/MapServer",
+      // url:"http://223.255.43.21:6080/arcgis/rest/services/WHLD_Group/WHLD_2019/MapServer/0",
+      url: "http://223.255.43.21:6080/arcgis/rest/services/WHLD_Group/WHLD_2019_label/MapServer/0",
+      outFields:["*"],
+      // labelingInfo: [labelClass],
+      visible: true,
+      title:"小班图层",
+      renderer:{
+        type: "simple", 
+        symbol: {
+          type: "simple-fill", 
+          size: 6,
+          color:[0, 255, 123, 0.1],
+          outline: { 
+            width: 0.5,
+            color: "red"
+          }
+        }
+      }
+    }) 
+
+    var map = new Map({
+      basemap: "topo-vector",
+      layers: [layer]
     });
+
+    var view = new MapView({
+      container: "map",
+      map: map,
+      // center: [-118.71511,34.09042],
+      zoom: 11
+    });
+
+    const print = new Print({
+      view: view,
+      // printServiceUrl: "http://223.255.43.21:6080/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task",
+      // printServiceUrl:"http://202.114.148.160:8000/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task",
+      printServiceUrl: "https://utility.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task",
+      container: document.createElement("div")
+    })
+
+    const printExpand = new Expand({
+      view: self.view,
+      content: print.container,
+      expandIconClass: "esri-icon-printer"
+    })
+
+    view.ui.add([{
+      component: printExpand,
+      position: "top-right",
+      index: 2
+    }])
+
+    // view.when(()=>{
+    //   var cas = document.getElementsByTagName("canvas");
+    //   var image = convertCanvasToImage(cas);
+    //   console.log(image);
+    // })
+    test.onclick = function () {
+      canvasPrint();
+      // var cas = document.getElementsByTagName("canvas");
+      // var image = convertCanvasToImage(cas[0]);
+
+      // var c = document.getElementById("myCanvas");
+      // convertCanvasToImage(c)
+      // window.open
+      // console.log(image);
+    }
+  });
+
+  // var c = document.getElementById("myCanvas");
+  // var ctx = c.getContext("2d");
+  // ctx.beginPath();
+  // ctx.arc(95, 50, 40, 0, 2 * Math.PI);
+  // ctx.stroke();
+
+  // function convertCanvasToImage(canvas) {
+  //   var image = new Image();
+  //   img.src = canvas.toDataURL("image/png", 1);
+  //   // image.src = canvas.toDataURL("image/png", 1);
+  //   return image;
+  // }
+
+  function canvasPrint() {
+    var targetDom = $("#map");
+    //克隆截图区域
+    var copyDom = targetDom.clone();
+    copyDom.width(targetDom.width() + "px");
+    copyDom.height(targetDom.height() + "px");
+    copyDom.attr("id", "copyDom");
+    $("body").append(copyDom);
+    //移除不需要截图的区域
+    $(".base-map").remove();
+
+    var pathName = document.location.pathname;
+    var ctxPath = pathName.substring(1, pathName.substr(1).indexOf('/') + 1);
+    html2canvas(copyDom[0], {
+      // html2canvas(copyDom[0], {
+      useCORS: true,
+      imageTimeout: 0
+      //, proxy: "/" + ctxPath + "/proxy/proxyScreenShot"
+    }).then(function (canvas) {
+      var url = canvas.toDataURL();
+      //创建下载a标签
+      var a = document.createElement("a");
+      a.setAttribute("id", "download");
+      document.body.appendChild(a);
+      //以下代码为下载此图片功能
+      var triggerDownload = $("#download").attr("href", url).attr("download", "img.png");
+      triggerDownload[0].click();
+      //移除下载a标签
+      document.body.removeChild(a);
+      //克隆DOM删除
+      copyDom.remove();
+    });
+  }
 </script>
+
 </html>

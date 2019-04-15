@@ -99,6 +99,15 @@ export const constantRouterMap = [{
           title: '属性数据',
           icon: '3dmap'
         }
+      },
+      {
+        "path": "managerDataByDistrict",
+        name: 'managerDataByDistrict',
+        component: () => import('@/views/table/managerDataByDistrict/index'),
+        meta: {
+          title: '按地区管理',
+          icon: '3dmap'
+        }
       }
     ]
   },

@@ -26,10 +26,10 @@
       </el-card>
     </div>
     <div class="footer">
-      <div class="footerItem" id="heightDiv">高度:{{cesiumObjs.height}}</div>
+      <div class="footerItem" id="heightDiv">高度:{{cesiumObjs.height}}米</div>
       <!-- <div class="footerItem" id="altitudeDiv">海拔：</div> -->
-      <div class="footerItem" id="latitudeDiv">纬度:{{cesiumObjs.latitude}}</div>
-      <div class="footerItem" id="longitudeDiv">经度:{{cesiumObjs.longitude}}</div>
+      <div class="footerItem" id="latitudeDiv">纬度:{{cesiumObjs.latitude}}度</div>
+      <div class="footerItem" id="longitudeDiv">经度:{{cesiumObjs.longitude}}度</div>
     </div>
   </div>
 </template>
@@ -220,7 +220,9 @@ export default {
   color: #e9e9e9;
   text-shadow: 2px 2px 2px #000;
 }
+</style>
 
+<style>
 .cesium-widget-credits {
   display: none !important;
   visibility: hidden !important;
