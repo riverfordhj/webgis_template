@@ -103,10 +103,10 @@ export const constantRouterMap = [{
       {
         "path": "managerDataByDistrict",
         name: 'managerDataByDistrict',
-        component: () => import('@/views/table/managerDataByDistrict/index'),
+        component: () => import('@/views/table/managerDataByDistrict/index1'),
         meta: {
-          title: '按地区管理',
-          icon: '3dmap'
+          title: '按行政区划',
+          icon: 'yunnan'
         }
       }
     ]

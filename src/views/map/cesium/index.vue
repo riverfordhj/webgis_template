@@ -153,6 +153,7 @@ export default {
       }
     },
     handleNodeClick(data) {
+      debugger;
       var target = this.tilesets.get(data.label);
       if (!target) {
         return;
