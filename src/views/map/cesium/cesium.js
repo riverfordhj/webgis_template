@@ -409,43 +409,44 @@ function AddWMS(viewer) {
 
 function getPosition(self) {
   //得到当前三维场景
-  var scene = self.cesiumObjs.viewer.scene;
+  // var scene = self.cesiumObjs.viewer.scene;
   //得到当前三维场景的椭球体
-  var ellipsoid = scene.globe.ellipsoid;
+  // var ellipsoid = scene.globe.ellipsoid;
 
-  // var longitudeDiv = document.getElementById("longitudeDiv");
-  // var latitudeDiv = document.getElementById("latitudeDiv");
-  // var heightDiv = document.getElementById("heightDiv");
-  // var altitudeDiv = document.getElementById("altitudeDiv");
-
+  //   cartesian = self.cesiumObjs.viewer.camera.pickEllipsoid(movement.endPosition, ellipsoid);
+  
   var longitudeString = null;
   var latitudeString = null;
   var height = null;
   var cartesian = null;
-  // 定义当前场景的画布元素的事件处理
-  var handler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
-  //设置鼠标移动事件的处理函数，这里负责监听x,y坐标值变化
-  handler.setInputAction(function (movement) {
-    //通过指定的椭球或者地图对应的坐标系，将鼠标的二维坐标转换为对应椭球体三维坐标
-    cartesian = self.cesiumObjs.viewer.camera.pickEllipsoid(movement.endPosition, ellipsoid);
+
+  var handler = new Cesium.ScreenSpaceEventHandler(self.cesiumObjs.viewer.scene.canvas);
+  var ray;
+  handler.setInputAction(function (event) {
+    ray = self.cesiumObjs.viewer.scene.camera.getPickRay(event.endPosition);
+    cartesian = self.cesiumObjs.viewer.scene.globe.pick(ray,self.cesiumObjs.viewer.scene)
     if (cartesian) {
-      //将笛卡尔坐标转换为地理坐标
-      var cartographic = ellipsoid.cartesianToCartographic(cartesian);
-      //将弧度转为度的十进制度表示
-      longitudeString = Cesium.Math.toDegrees(cartographic.longitude);
-      latitudeString = Cesium.Math.toDegrees(cartographic.latitude);
-      //获取相机高度
-      height = Math.ceil(self.cesiumObjs.viewer.camera.positionCartographic.height);
-      self.cesiumObjs.latitude = longitudeString.toFixed(2);
-      self.cesiumObjs.longitude = latitudeString.toFixed(2);
-      self.cesiumObjs.height = height.toFixed(0);
-    } else {
-      // entity.label.show = false;
-    }
+        //将笛卡尔坐标转换为地理坐标
+        // var cartographic = ellipsoid.cartesianToCartographic(cartesian);
+        var cartographic=Cesium.Cartographic.fromCartesian(cartesian);
+        //将弧度转为度的十进制度表示
+        longitudeString = Cesium.Math.toDegrees(cartographic.longitude);
+        latitudeString = Cesium.Math.toDegrees(cartographic.latitude);
+  
+        //获取相机高度
+        height = Math.ceil(self.cesiumObjs.viewer.camera.positionCartographic.height);
+        self.cesiumObjs.latitude = longitudeString.toFixed(2);
+        self.cesiumObjs.longitude = latitudeString.toFixed(2);
+        self.cesiumObjs.mHeight = cartographic.height.toFixed(0);
+        self.cesiumObjs.wHeight = height.toFixed(0);
+      } else {
+        // entity.label.show = false;
+      }
   }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+
   //设置鼠标滚动事件的处理函数，这里负责监听高度值变化
   handler.setInputAction(function (wheelment) {
     height = Math.ceil(self.cesiumObjs.viewer.camera.positionCartographic.height);
-    self.cesiumObjs.height = height.toFixed(0);
+    self.cesiumObjs.wHeight = height.toFixed(0);
   }, Cesium.ScreenSpaceEventType.WHEEL);
 }

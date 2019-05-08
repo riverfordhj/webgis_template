@@ -1,33 +1,38 @@
 <template>
   <div>
     <div id="cesiumContainer"></div>
-    <div id="menu">
-      <el-card class="box-card">
-        <el-tree
-          :data="tree_data"
-          show-checkbox
-          node-key="id"
-          @check-change="handleCheckChange"
-          @node-click="handleNodeClick"
-          :default-checked-keys="defaultChecked"
-          :expand-on-click-node="false">
-          <span class="custom-tree-node" slot-scope="{ node, data }">
-            <span>{{ node.label }}</span>
-            <span>
-              <el-button
-                type="text"
-                size="mini"
-                @click="() => remove(node, data)">
-                删除
-              </el-button>
-            </span>
-          </span>
-        </el-tree>
-      </el-card>
-    </div>
+    <dialog-drag v-show="LayerTreeV" id="dialog-2" class="dialog-3" title="图层目录" :options="{ top:100,left:50 }" @close="closeDataTree">
+        <el-scrollbar :native="false" style="height:100%">
+          <el-tree :data="LayerTreeData" :props="defaultProps">
+          </el-tree>
+        </el-scrollbar >  
+      
+    </dialog-drag>
+    <!-- <drop-area @drop='drop'>
+      <p>Drop Here</p>
+    </drop-area> -->
+    <!-- <el-dialog
+      v-el-drag-dialog
+      @dragDialog="handleDrag"
+      title="提示"
+      width="30%"
+      :visible="true"
+      :modal="false"
+      :modal-append-to-body="false">
+      <span>这是一段信息</span>
+    </el-dialog> -->
+    <!-- <el-card 
+      style="width:200px;left:10px;top:10px">
+        <div slot="header" class="clearfix">
+        <span>卡片名称</span>
+        <el-button style="float: right; padding: 3px 0" type="text">操作按钮</el-button>
+        123
+      </div>
+    </el-card>
+    <draggable> 123</draggable> -->
     <div class="footer">
-      <div class="footerItem" id="mouseHeightDiv">高度:{{cesiumObjs.mHeight}}米</div>
-      <div class="footerItem" id="windowHeightDiv">高度:{{cesiumObjs.wHeight}}米</div>
+      <div class="footerItem" id="mouseHeightDiv">鼠标高度:{{cesiumObjs.mHeight}}米</div>
+      <div class="footerItem" id="windowHeightDiv">视窗高度:{{cesiumObjs.wHeight}}米</div>
       <!-- <div class="footerItem" id="altitudeDiv">海拔：</div> -->
       <div class="footerItem" id="latitudeDiv">纬度:{{cesiumObjs.latitude}}度</div>
       <div class="footerItem" id="longitudeDiv">经度:{{cesiumObjs.longitude}}度</div>
@@ -36,63 +41,81 @@
 </template>
 
 <script>
-import Cesium from "cesium/Cesium";
-import widgets from "cesium/Widgets/widgets.css";
-import CesiumNavigation from "cesium-navigation-es6";
+  // import elDragDialog from '@/directive/el-dragDialog' 
+  import DialogDrag from 'vue-dialog-drag'
+  import Cesium from "cesium/Cesium";
+  import widgets from "cesium/Widgets/widgets.css";
+  import CesiumNavigation from "cesium-navigation-es6";
 
-import ElementUI from "element-ui";
-import "element-ui/lib/theme-chalk/index.css";
+  import ElementUI from "element-ui";
+  import "element-ui/lib/theme-chalk/index.css";
 
-import store from "../../../store";
+  import store from "../../../store";
 
-import {
-  Init,
-  AddJsonLayer,
-  Load3dtiles1,
-  FlyTo_TileSet,
-  FlyTo_JsonData
-} from "./cesium";
-import jsondata from "@/assets/json/yunnanshi.json";
-
-
-
-export default {
-  name: "",
-  data() {
-    return {
-      checked: true,
-      tree_data: [],
-      cesium_resources: [],
-      tilesets: new Map(),
-      defaultChecked: [],
-      cesiumObjs: {
-        viewer: undefined,
-        mHeight: undefined,
-        wHeight: undefined,
-        latitude: undefined,
-        longitude: undefined
+  import {
+    Init,
+    AddJsonLayer,
+    Load3dtiles1,
+    FlyTo_TileSet,
+    FlyTo_JsonData
+  } from "./cesium";
+  import jsondata from "@/assets/json/yunnanshi.json";
+  // 
+  // import DropArea from 'vue-dialog-drag/dist/drop-area'
+  export default {
+    name: '',
+    components: {
+      DialogDrag,
+      // DropArea
+    },
+    data() {
+      return {
+        LayerTreeV:true,
+        LayerTreeData: [],
+        defaultProps: {
+          children: 'children',
+          label: 'label'
+        },
+        checked: true,
+        tree_data: [],
+        cesium_resources: [],
+        tilesets: new Map(),
+        defaultChecked: [],
+        cesiumObjs: {
+          viewer: undefined,
+          mHeight: undefined,
+          wHeight: undefined,
+          latitude: undefined,
+          longitude: undefined
+        }
       }
-    };
-  },
-  computed: {
-    getLayerResources: function() {
-      return this.$store.getters.cesium_resources;
-    }
-  },
-  watch: {
-    getLayerResources(val) {
-      this.cesium_resources = val;
+    },
+    computed: {
+      getLayerResources: function() {
+        return this.$store.getters.cesium_resources;
+      }
+    },
+    watch: {
+      getLayerResources(val) {
+        this.cesium_resources = val;
+        this.react();
+      }
+    },
+    mounted() {
+      var self = this;
+      this.cesium_resources = this.$store.getters.cesium_resources;
+      this.createMap(self);
       this.react();
-    }
-  },
-  mounted() {
-    var self = this;
-    this.cesium_resources = this.$store.getters.cesium_resources;
-    this.createMap(self);
-    this.react();
-  },
-  methods: {
-    createMap(self) {
+    },
+    methods: {
+    // v-el-drag-dialog onDrag callback function
+      handleDrag() {
+        // this.$refs.select.blur()
+      },
+      drop (id) {
+        console.log('drop id:', id)
+      },
+      createMap(self) {
       Init(jsondata, self, CesiumNavigation);
     },
     react() {
@@ -160,15 +183,36 @@ export default {
       } else {
         FlyTo_JsonData(target, this.cesiumObjs.viewer);
       }
+    },
+    closeDataTree() {
+      this.LayerTreeV = false
     }
   }
-};
+}
 </script>
 
+<style src='vue-dialog-drag/dist/vue-dialog-drag.css'></style>
+<style src='vue-dialog-drag/dist/dialog-styles.css'></style>
+
+<style>
+  .dialog-3.dialog-drag .dialog-header{
+    background-color: #304156;
+  }
+  .dialog-3.dialog-drag{
+    background-color: white;
+  }
+  .dialog-drag .dialog-body{
+    height: calc(100vh - 500px);
+  }
+  .el-scrollbar__wrap {
+    overflow-x: hidden;
+  }
+</style>
+
 <style scoped>
-#cesiumContainer {
-  height: calc(100vh - 50px);
-}
+  #cesiumContainer {
+    height: calc(100vh - 50px);
+  }
 .backdrop {
   display: block;
   background: rgba(42, 42, 42, 0.9);

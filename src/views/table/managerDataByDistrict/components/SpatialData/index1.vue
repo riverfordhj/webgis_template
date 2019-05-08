@@ -5,10 +5,10 @@
         <el-button type="primary" size="small" @click="handleCreate" >添加数据</el-button>      
       </el-tooltip>
       <el-tooltip class="item" effect="dark" content="删除选中数据" placement="top">
-        <el-button type="danger"  size="small"@click="handleDelete">删除数据</el-button>
+        <el-button type="danger"  size="small" @click="handleDelete">删除数据</el-button>
       </el-tooltip>
       <el-tooltip class="item" effect="dark" content="添加所有数据到地图" placement="top">
-        <el-button type="primary" size="small">加载到地图</el-button>  
+        <el-button type="primary" size="small" @click="addDataToStore">加载到地图</el-button>  
       </el-tooltip>
     </div>
     <el-table v-loading="listLoading" :data="spatialData" border style="width: 100%" @selection-change="handleSelectionChange">
@@ -94,6 +94,8 @@
 </template>
 
 <script>
+  import store from "../../../../../store";
+
   export default {
     name: '',
     data() {
@@ -133,7 +135,10 @@
         }
       }
     },
-    props:["spatialData"],
+    props:{
+      spatialData: Array,
+      procjectName: String
+    },
     watch:{
       spatialData: val =>{
         console.log(val)
@@ -141,7 +146,14 @@
     },
     methods:{
       handleSelectionChange(val) {
-        this.multipleSelection = val;
+        this.multipleSelection = val
+      },
+      addDataToStore() {
+        // var m = new Map()
+        // m.set(this.procjectName, this.spatialData);
+        // console.log(m)
+        // let set = new Set([[this.procjectName, this.spatialData]])
+        store.dispatch("AddCesiumData", {key:this.procjectName, value:this.spatialData});
       },
       handleCreate() {
         this.resetTemp();

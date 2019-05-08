@@ -10,8 +10,10 @@
               :props="defaultProps"
               :load="loadNode" 
               lazy=""
-              @node-click="nodeClick">
-              <span class="custom-tree-node" slot-scope="{ node, data }">
+              @node-click="nodeClick"
+              :render-content="renderContent"
+              >
+              <!-- <span class="custom-tree-node" slot-scope="{ node, data }">
                 <template v-if="node.level == true">
                   <span>
                     <svg-icon style="margin-right:8px" icon-class="city" />
@@ -32,7 +34,7 @@
                   </el-button>
                   </span>
                 </template>     
-              </span>
+              </span> -->
             </el-tree>       
           </div>
         </el-scrollbar >            
@@ -40,7 +42,7 @@
       <el-main class="main" v-loading="mainLoading">
         <el-tabs type="border-card">
           <el-tab-pane label="空间数据" name="first">
-            <Spatial-Data :spatialData="spatialData" />
+            <Spatial-Data :spatialData="spatialData" :procjectName="procjectName" />
           </el-tab-pane>
           <el-tab-pane label="文本数据" name="second">
             <Text-Data />
@@ -67,6 +69,7 @@ export default {
     return {
       projectMessage: {},
       spatialData: [],
+      procjectName: "",
       mainLoading: false,
       defaultProps: {
         children: "children",
@@ -138,7 +141,6 @@ export default {
           label: "西双版纳",
           className: "city",
         },
-
       ]
     };
   },
@@ -151,29 +153,31 @@ export default {
     
   },
   methods: {
-    // renderContent(h, { node, data, store }) {
-    //   if (node.level === 1) {
-    //     return (
-    //       <span>
-    //         <svg-icon style="margin-right:8px" icon-class="city" />
-    //         <span>{node.label}</span>
-    //       </span>
-    //     )        
-    //   } 
-    //   if (node.level === 2) {
-    //     return (
-    //       <span class="custom-tree-node">
-    //         <span>
-    //           <svg-icon style="margin-right:8px" icon-class="project" />
-    //           <span>{node.label}</span>
-    //         </span>           
-    //         <span>
-    //           <el-button size="mini" type="text" on-click={ () => {this.delete(node, data)}}>删除</el-button>
-    //         </span>
-    //       </span>         
-    //     );        
-    //   }   
-    // },
+    renderContent(h, { node, data, store }) {
+      if (node.level === 1) {
+        return (
+          <span class="custom-tree-node">
+            <span> 
+              <svg-icon style="margin-right:8px" icon-class="city" />
+              <span>{node.label}</span>
+            </span>       
+          </span>
+        )        
+      } 
+      if (node.level === 2) {
+        return (
+          <span class="custom-tree-node">
+            <span>
+              <svg-icon style="margin-right:8px" icon-class="project" />
+              <span>{node.label}</span>
+            </span>           
+            <span>
+              <el-button size="mini" type="text" on-click={ (event) => {this.remove(node, data, event)}}>删除</el-button>
+            </span>
+          </span>         
+        );        
+      }   
+    },
     loadNode(node, resolve) {
       if (node.level === 0) {
         return resolve(this.treeData)
@@ -193,19 +197,20 @@ export default {
       })
     },
     nodeClick(data, node, component) {
-      // console.log(data, node, component);
-      
       if (node.level === 2) {
         this.mainLoading = true
         getRelatedDataByName(node.data.label).then(res => {
           console.log(res.data)
           this.projectMessage = res.data
           this.spatialData = res.data.SpatialData
+          this.procjectName = res.data.Name       
           this.mainLoading = false
+          
         })
       }
     },
-    remove(node, data) {
+    remove(node, data, event) {
+      event.stopPropagation()  
       deleteProjectByName(data.label).then(res => {
         // console.log(res);
         this.$refs["tree"].remove(node, data)
@@ -247,9 +252,11 @@ export default {
 }
 
 .aside {
-  background: white;
+  /* background: white; */
   text-align: center;
   overflow: hidden;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+  
 }
 
 .main {

@@ -29,7 +29,6 @@ export function getRelatedDataByName(projectName) {
 }
 
 export function deleteProjectByName(projectName) {
-  debugger;
   return request ({
     url: "project/deleteProjectByName",
     method: "get",
