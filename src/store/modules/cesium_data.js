@@ -17,8 +17,9 @@ const cesium_data = {
       let data = state.data.set(resource.key,Array.from(unionSet))
       state.data = new Map(data)
     },
-    REMOVE_CESIUM_DATA: (state, resource) => {
-      state.data.delete(resource.key)
+    REMOVE_CESIUM_DATA: (state, name) => {
+      state.data.delete(name)
+      state.data = new Map(state.data)
       //   deleteItem(state.esri_resources,resource,"serverAddress");
       // },
     },

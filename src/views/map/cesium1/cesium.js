@@ -1,7 +1,7 @@
 import Cesium from 'cesium/Cesium';
 
 
-export const intCesium = function (self, CesiumNavigation) {
+export const intCesium = function (self, CesiumNavigation, jsondata) {
   Cesium.Ion.defaultAccessToken =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5MjMyYjZiMC1lZmY1LTQzNmEtODg1NS01NmQzMmE2NWY2ZjMiLCJpZCI6NDQ1MSwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MDg4NTM2Mn0.7OzWWlmUmJv_EJo0RFpuiL2G_KLgZBENAAXOgU1O1qM';
 
@@ -30,7 +30,8 @@ export const intCesium = function (self, CesiumNavigation) {
   //默认视角
   
   self.cesiumObjs.viewer.camera.setView({  
-    destination: Cesium.Cartesian3.fromDegrees(106.72 , 25.05, 3000000),  
+    // destination: Cesium.Cartesian3.fromDegrees(106.72 , 25.05, 3000000),  
+    destination: Cesium.Rectangle.fromDegrees(97, 21, 106, 29),  
     orientation: {  
       heading : Cesium.Math.toRadians(0),  
       pitch : Cesium.Math.toRadians(-90),  
@@ -41,7 +42,7 @@ export const intCesium = function (self, CesiumNavigation) {
   var options = {};
   // 用于在使用重置导航重置地图视图时设置默认视图控制。接受的值是Cesium.Cartographic 和 Cesium.Rectangle.
   // options.defaultResetView = Cesium.Rectangle.fromDegrees(80, 22, 130, 50);
-  options.defaultResetView = Cesium.Rectangle.fromDegrees(80, 22, 130, 50);
+  options.defaultResetView = Cesium.Rectangle.fromDegrees(97, 21, 106, 29);
   // 用于启用或禁用罗盘。true是启用罗盘，false是禁用罗盘。默认值为true。如果将选项设置为false，则罗盘将不会添加到地图中。
   options.enableCompass= true;
   // 用于启用或禁用缩放控件。true是启用，false是禁用。默认值为true。如果将选项设置为false，则缩放控件将不会添加到地图中。
@@ -55,6 +56,8 @@ export const intCesium = function (self, CesiumNavigation) {
   CesiumNavigation(self.cesiumObjs.viewer, options);
 
   getPosition(self)
+
+  // loadJsonLayer(self.cesiumObjs.viewer, jsondata, true);
 }
 
 function getPosition(self) {
@@ -102,28 +105,29 @@ function getPosition(self) {
 }
 
 //加载3DTILES模型
-export function Load3dtiles(url, viewer) {
+export function Load3dtiles(url, viewer, arr) {
   var tileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
     url: url,
   }))
 
-  tileset.readyPromise.then(function () {
-      viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0.5, -0.2, tileset.boundingSphere.radius * 4.0));
-  });
+  // tileset.readyPromise.then(function () {
+  //     viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0.5, -0.2, tileset.boundingSphere.radius * 4.0));
+  // });
 
-  // if(arr){
-  //   tileset.readyPromise.then(function () {
-  //     var longitude = 100.89544722222222;
-  //     var latitude =  25.40965 ;
-  //     var height = 1968;
-  //     var heading = 0;
-  //     var position = Cesium.Cartesian3.fromDegrees(longitude, latitude, height);
-  //     var mat = Cesium.Transforms.eastNorthUpToFixedFrame(position);
-  //     var rotationX = Cesium.Matrix4.fromRotationTranslation(Cesium.Matrix3.fromRotationZ(Cesium.Math.toRadians(heading)));
-  //     Cesium.Matrix4.multiply(mat, rotationX, mat);
-  //     tileset._root.transform = mat;
-  //   })
-  // }
+  if(arr){
+    tileset.readyPromise.then(function () {
+      var longitude = 100.89544722222222;
+      var latitude =  25.40965 ;
+      var height = 1968;
+      var heading = 0;
+      var position = Cesium.Cartesian3.fromDegrees(longitude, latitude, height);
+      var mat = Cesium.Transforms.eastNorthUpToFixedFrame(position);
+      var rotationX = Cesium.Matrix4.fromRotationTranslation(Cesium.Matrix3.fromRotationZ(Cesium.Math.toRadians(heading)));
+      Cesium.Matrix4.multiply(mat, rotationX, mat);
+      tileset._root.transform = mat;
+    })
+  }
+  tileset.show = false
   return tileset
 }
 
@@ -185,8 +189,18 @@ export function loadJsonLayer(viewer, jsondata, isFlyTo) {
       }
     }
     
-    // if (isFlyTo)
-    //   viewer.flyTo(dataSource);
+    if (isFlyTo)
+      viewer.flyTo(dataSource);
   });
   return dataPromise;
+}
+
+//缩放到3dtiles
+export function FlyToTileSet(tileset,viewer){
+  viewer.flyTo(tileset, new Cesium.HeadingPitchRange(0.5, -0.2, tileset.boundingSphere.radius * 4.0));
+}
+
+//缩放到jsonLayer
+export function FlyToJsonLayer(jsonData,viewer){
+  viewer.flyTo(jsonData);
 }

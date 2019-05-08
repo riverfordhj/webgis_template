@@ -7,6 +7,8 @@
             show-checkbox
             :data="LayerTreeData" 
             :props="defaultProps"
+            @node-click="handleNodeClick"
+            @check="handleCheckChange"
             :render-content="renderContent">
           </el-tree>
         </el-scrollbar >  
@@ -31,8 +33,12 @@
   import {
     intCesium,
     Load3dtiles,
-    loadJsonLayer
+    loadJsonLayer,
+    FlyToTileSet,
+    FlyToJsonLayer
   } from "./cesium";
+
+  import jsondata from "@/assets/json/yunnanshi.json";
 
   export default {
     name: '',
@@ -45,6 +51,7 @@
         LayerTreeVisible:true,
         LayerTreeData: [],
         cesiumData: null,
+        layerDataMap: new Map(),
         defaultProps: {
           children: 'children',
           label: 'label'
@@ -73,12 +80,12 @@
     },
     mounted() {
       this.cesiumData = this.$store.getters.cesium_data
-      intCesium(this, CesiumNavigation)
+      intCesium(this, CesiumNavigation, jsondata)
       this.creatLayerTree(this.cesiumData)      
     },
     methods: {
       closeDataTree() {
-        this.LayerTreeV = false
+        this.LayerTreeVisible = false
       },
       creatLayerTree(dataMap) {
         for (let [key, value] of dataMap) {
@@ -117,23 +124,76 @@
         }
       },
       renderContent(h, { node, data, store }) {
-        var icon = ["project","type","layer"];
+        var icon = ["type","layer"];
+        if (node.level === 1) {
+          return (
+            <span class="custom-tree-node">
+              <span> 
+                <svg-icon style="margin-right:8px" icon-class={icon[node.level-1]} />
+                <span>{node.label}</span>
+              </span>  
+              <span>
+                <el-button size="mini" type="text" on-click={ (event) => {this.remove(node, data, event)}}>移除</el-button>
+              </span>     
+            </span>
+          )  
+        }
+        
         return (
           <span class="custom-tree-node">
             <span> 
-              <svg-icon style="margin-right:8px" icon-class={icon[node.level-1]} />
+              <svg-icon style="margin-right:8px" icon-class={icon[node.level-2]} />
               <span>{node.label}</span>
-            </span>  
-            <span>
-              <el-button size="mini" type="text" on-click={ (event) => {this.remove(node, data, event)}}>删除</el-button>
             </span>     
           </span>
         )  
       },
+      handleNodeClick(data, node, component) {
+        console.log({data, node})
+        if (node.level === 3) {
+          let target = this.layerDataMap.get(data.label) 
+          switch(target.type) {
+            case "三维倾斜测量":
+            case "BIM":
+              FlyToTileSet(target.obj, this.cesiumObjs.viewer);
+            default:
+              break
+          }
+
+        }
+      },
+      handleCheckChange(data, node) {
+        for (let [key, value] of this.layerDataMap) {
+          switch(value.type) {
+            case "三维倾斜测量":
+            case "BIM":
+              value.obj.show = false
+            default:
+              break
+          }
+        }
+
+        // var target = this.layerDataMap.get(data.label);
+        console.log({data, node})
+        node.checkedNodes.map(checkedNode => {
+          let target = this.layerDataMap.get(checkedNode.label)
+          if(target){
+            switch(target.type) {
+              case "三维倾斜测量":
+              case "BIM":
+                target.obj.show = true;
+            }
+          }
+        })
+        // node.checkedNodes
+      },
       remove(node, data, event) {
         event.stopPropagation()  
-        alert("re")
-        console.log(node)
+        // alert("re")
+        console.log({node, data})
+        this.cesiumObjs.viewer.dataSources.removeAll(true)
+        this.cesiumObjs.viewer.scene.primitives.removeAll();
+        store.dispatch("RemoveCesiumData", node.label);
         // deleteProjectByName(data.label).then(res => {
         //   // console.log(res);
         //   this.$refs["tree"].remove(node, data)
@@ -146,15 +206,18 @@
           case "二维矢量":
             // var obj = AddJsonLayer(this.cesiumObjs.viewer, serverAddress, true);
             // this.tilesets.set(name, obj);
+            this.layerDataMap.set(name, {type:type, obj: obj})
             break;
           case "三维倾斜测量":
             var obj = Load3dtiles(serverAddress, this.cesiumObjs.viewer);
             // this.tilesets.set(name, obj);
+            this.layerDataMap.set(name, {type:type, obj: obj})
             break;
           case "BIM":
             var arr = position.split(",");
             var obj = Load3dtiles(serverAddress, this.cesiumObjs.viewer, arr);
             // this.tilesets.set(name, obj);
+            this.layerDataMap.set(name, {type:type, obj: obj})
             break;
           default:
             break;
