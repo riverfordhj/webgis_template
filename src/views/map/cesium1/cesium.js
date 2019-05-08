@@ -27,8 +27,20 @@ export const intCesium = function (self, CesiumNavigation) {
   // Enable depth testing so things behind the terrain disappear.
   self.cesiumObjs.viewer.scene.globe.depthTestAgainstTerrain = true;
 
+  //默认视角
+  
+  self.cesiumObjs.viewer.camera.setView({  
+    destination: Cesium.Cartesian3.fromDegrees(106.72 , 25.05, 3000000),  
+    orientation: {  
+      heading : Cesium.Math.toRadians(0),  
+      pitch : Cesium.Math.toRadians(-90),  
+      roll : Cesium.Math.toRadians(0)                            
+    }  
+  });   
+
   var options = {};
   // 用于在使用重置导航重置地图视图时设置默认视图控制。接受的值是Cesium.Cartographic 和 Cesium.Rectangle.
+  // options.defaultResetView = Cesium.Rectangle.fromDegrees(80, 22, 130, 50);
   options.defaultResetView = Cesium.Rectangle.fromDegrees(80, 22, 130, 50);
   // 用于启用或禁用罗盘。true是启用罗盘，false是禁用罗盘。默认值为true。如果将选项设置为false，则罗盘将不会添加到地图中。
   options.enableCompass= true;
@@ -51,7 +63,7 @@ function getPosition(self) {
   //得到当前三维场景的椭球体
   // var ellipsoid = scene.globe.ellipsoid;
 
-  //   cartesian = self.cesiumObjs.viewer.camera.pickEllipsoid(movement.endPosition, ellipsoid);
+  // cartesian = self.cesiumObjs.viewer.camera.pickEllipsoid(movement.endPosition, ellipsoid);
   
   var longitudeString = null;
   var latitudeString = null;
@@ -87,4 +99,94 @@ function getPosition(self) {
     height = Math.ceil(self.cesiumObjs.viewer.camera.positionCartographic.height);
     self.cesiumObjs.wHeight = height.toFixed(0);
   }, Cesium.ScreenSpaceEventType.WHEEL);
+}
+
+//加载3DTILES模型
+export function Load3dtiles(url, viewer) {
+  var tileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
+    url: url,
+  }))
+
+  tileset.readyPromise.then(function () {
+      viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0.5, -0.2, tileset.boundingSphere.radius * 4.0));
+  });
+
+  // if(arr){
+  //   tileset.readyPromise.then(function () {
+  //     var longitude = 100.89544722222222;
+  //     var latitude =  25.40965 ;
+  //     var height = 1968;
+  //     var heading = 0;
+  //     var position = Cesium.Cartesian3.fromDegrees(longitude, latitude, height);
+  //     var mat = Cesium.Transforms.eastNorthUpToFixedFrame(position);
+  //     var rotationX = Cesium.Matrix4.fromRotationTranslation(Cesium.Matrix3.fromRotationZ(Cesium.Math.toRadians(heading)));
+  //     Cesium.Matrix4.multiply(mat, rotationX, mat);
+  //     tileset._root.transform = mat;
+  //   })
+  // }
+  return tileset
+}
+
+//加载json文件图层
+export function loadJsonLayer(viewer, jsondata, isFlyTo) {
+  var geojsonOptions = {
+    clampToGround: true,
+    fill: Cesium.Color.RED
+  };
+
+  var dataPromise = Cesium.GeoJsonDataSource.load(jsondata, geojsonOptions);
+
+  dataPromise.then(function (dataSource) {
+    // Add the new data as entities to the viewer
+    viewer.dataSources.add(dataSource);
+
+    // Save an new entity collection of baselayer data
+    // dataSource.entities.show = homeData.baselayershow;
+    // homeData.baselayerEntities = dataSource.entities;
+    // homeData.dataSource = dataSource;
+
+    // Get the array of entities
+    var neighborhoodEntities = dataSource.entities.values;
+    for (var i = 0; i < neighborhoodEntities.length; i++) {
+      var entity = neighborhoodEntities[i];
+
+      if (Cesium.defined(entity.polygon)) {
+        // entity styling code here
+        // Use geojson neighborhood value as entity name
+        entity.name = entity.properties.Name;
+
+        // Set the polygon material to a random, translucent color.
+        entity.polygon.material = Cesium.Color.fromRandom({
+          // red: 0.5,
+          // maximumGreen: 0.9,
+          // minimumBlue: 0.1,
+          alpha: 0.4
+        });
+
+        // Generate Polygon position
+        var polyPositions = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions;
+        var polyCenter = Cesium.BoundingSphere.fromPoints(polyPositions).center;
+        polyCenter = Cesium.Ellipsoid.WGS84.scaleToGeodeticSurface(polyCenter);
+        
+        //polyCenter.z += 20000;
+        entity.position = polyCenter;
+        
+        // Generate labels
+        entity.label = {
+          text: entity.name,
+          showBackground: true,
+          scale: 0.7,
+          horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          heightReference : Cesium.HeightReference.CLAMP_TO_GROUND,
+          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(100.0, 2000000.0),
+          disableDepthTestDistance: 10000.0
+        };
+      }
+    }
+    
+    // if (isFlyTo)
+    //   viewer.flyTo(dataSource);
+  });
+  return dataPromise;
 }

@@ -191,7 +191,7 @@ export default {
     },
     getChildrenNode(node, resolve) {
       GetProjectByName(node.data.label).then(res => {
-        console.log(res.data)
+        // console.log(res.data)
         resolve(res.data)
 
       })
@@ -200,7 +200,7 @@ export default {
       if (node.level === 2) {
         this.mainLoading = true
         getRelatedDataByName(node.data.label).then(res => {
-          console.log(res.data)
+          // console.log(res.data)
           this.projectMessage = res.data
           this.spatialData = res.data.SpatialData
           this.procjectName = res.data.Name       

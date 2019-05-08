@@ -1,3 +1,5 @@
+import { arrayEquals } from "@/utils/filterData.js"
+
 const cesium_data = {
   state: {
     data: new Map()
@@ -5,9 +7,15 @@ const cesium_data = {
 
   mutations: {
     ADD_CESIUM_DATA: (state, resource) => {
-      state.data.set(resource.key, resource.value)
-      // addWithDeduplication(state.esri_resources,resource);
-      // state.esri_resources = Array.from(new Set(state.esri_resources))
+      let val = state.data.get(resource.key) || []
+      let a = new Set(val)
+      let b = new Set(resource.value)
+      let unionSet = new Set([...a,...b])
+      if (arrayEquals(Array.from(unionSet), val)) {
+        return
+      }
+      let data = state.data.set(resource.key,Array.from(unionSet))
+      state.data = new Map(data)
     },
     REMOVE_CESIUM_DATA: (state, resource) => {
       state.data.delete(resource.key)

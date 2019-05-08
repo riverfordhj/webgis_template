@@ -141,7 +141,7 @@
     },
     watch:{
       spatialData: val =>{
-        console.log(val)
+        // console.log(val)
       }
     },
     methods:{
@@ -153,7 +153,7 @@
         // m.set(this.procjectName, this.spatialData);
         // console.log(m)
         // let set = new Set([[this.procjectName, this.spatialData]])
-        store.dispatch("AddCesiumData", {key:this.procjectName, value:this.spatialData});
+        store.dispatch("AddCesiumData", {key:this.procjectName, value:this.multipleSelection});
       },
       handleCreate() {
         this.resetTemp();

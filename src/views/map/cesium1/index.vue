@@ -1,9 +1,13 @@
 <template>
   <div>
     <div id="cesiumContainer"></div>
-    <dialog-drag v-show="LayerTreeVisible" id="dialog-2" class="dialog-3" title="图层目录" :options="{ top:100,left:50 }" @close="closeDataTree">
+    <dialog-drag v-show="LayerTreeVisible" id="dialog-2" class="dialog-3" title="图层目录" :options="{ top:100,left:50,width:280 }" @close="closeDataTree">
         <el-scrollbar :native="false" style="height:100%">
-          <el-tree :data="LayerTreeData" :props="defaultProps">
+          <el-tree 
+            show-checkbox
+            :data="LayerTreeData" 
+            :props="defaultProps"
+            :render-content="renderContent">
           </el-tree>
         </el-scrollbar >  
     </dialog-drag>
@@ -26,6 +30,8 @@
 
   import {
     intCesium,
+    Load3dtiles,
+    loadJsonLayer
   } from "./cesium";
 
   export default {
@@ -38,6 +44,7 @@
       return {
         LayerTreeVisible:true,
         LayerTreeData: [],
+        cesiumData: null,
         defaultProps: {
           children: 'children',
           label: 'label'
@@ -51,12 +58,107 @@
         }
       }
     },
+    computed: {
+      getLayerResources: function() {
+        return this.$store.getters.cesium_data;
+      }
+    },
+    watch: {
+      getLayerResources(newVal, oldVal) {
+        // this.cesiumData = val
+        // console.log(newVal)
+        this.LayerTreeData = []
+        this.creatLayerTree(newVal)
+      }
+    },
     mounted() {
+      this.cesiumData = this.$store.getters.cesium_data
       intCesium(this, CesiumNavigation)
+      this.creatLayerTree(this.cesiumData)      
     },
     methods: {
       closeDataTree() {
         this.LayerTreeV = false
+      },
+      creatLayerTree(dataMap) {
+        for (let [key, value] of dataMap) {
+          let level1 = {
+            label: key,
+            children:[]
+          }
+          var temp = [];
+          value.map(col => {
+            this.loadLayer(col)
+
+            if (
+              !temp.some(tCol => {
+                return tCol["type"] === col["type"]
+              })
+            ) {
+              temp.push(col["type"]);
+            }
+          });
+          for(let i in temp){
+            let level2 = {
+              label: temp[i],
+              children: []
+            }
+            value.map(col => {
+              if(col["type"] == temp[i]){
+                var level3 = {
+                  label:col["name"]
+                }
+                level2.children.push(level3)
+              }
+            })
+            level1.children.push(level2)
+          }
+          this.LayerTreeData.push(level1)
+        }
+      },
+      renderContent(h, { node, data, store }) {
+        var icon = ["project","type","layer"];
+        return (
+          <span class="custom-tree-node">
+            <span> 
+              <svg-icon style="margin-right:8px" icon-class={icon[node.level-1]} />
+              <span>{node.label}</span>
+            </span>  
+            <span>
+              <el-button size="mini" type="text" on-click={ (event) => {this.remove(node, data, event)}}>删除</el-button>
+            </span>     
+          </span>
+        )  
+      },
+      remove(node, data, event) {
+        event.stopPropagation()  
+        alert("re")
+        console.log(node)
+        // deleteProjectByName(data.label).then(res => {
+        //   // console.log(res);
+        //   this.$refs["tree"].remove(node, data)
+        //   this.spatialData = []
+        //   this.projectMessage = {}
+        // })
+      },
+      loadLayer({ serverAddress, type, name, position }) {
+        switch (type) {
+          case "二维矢量":
+            // var obj = AddJsonLayer(this.cesiumObjs.viewer, serverAddress, true);
+            // this.tilesets.set(name, obj);
+            break;
+          case "三维倾斜测量":
+            var obj = Load3dtiles(serverAddress, this.cesiumObjs.viewer);
+            // this.tilesets.set(name, obj);
+            break;
+          case "BIM":
+            var arr = position.split(",");
+            var obj = Load3dtiles(serverAddress, this.cesiumObjs.viewer, arr);
+            // this.tilesets.set(name, obj);
+            break;
+          default:
+            break;
+        }
       }
     }
   }
