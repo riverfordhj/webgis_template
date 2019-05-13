@@ -1,7 +1,12 @@
 <template>
   <div>
-    <div id="cesiumContainer"></div>
-    <dialog-drag v-show="LayerTreeVisible" id="dialog-2" class="dialog-3" title="图层目录" :options="{ top:100,left:50,width:280 }" @close="closeDataTree">
+    <div id="cesiumContainer">
+    </div>
+    <toolbar @openLayerTreePanel="openLayerTreePanel" :viewer="cesiumObjs.viewer" />  
+    <div id="lineTooltip" class="tooltip"></div>
+    <div id="areaTooltip" class="tooltip"></div>
+    <div id="heightTooltip" class="tooltip"></div>
+    <dialog-drag v-show="LayerTreeVisible" id="dialog-2" class="dialog-3" title="图层目录" :options="{ width:280 }" @close="closeDataTree">
         <el-scrollbar :native="false" style="height:100%">
           <el-tree 
             show-checkbox
@@ -27,7 +32,7 @@
   import Cesium from "cesium/Cesium"
   import widgets from "cesium/Widgets/widgets.css"
   import CesiumNavigation from "cesium-navigation-es6"
-
+  import toolbar from "./toolbar/index.vue"
   import store from "../../../store"
 
   import {
@@ -36,7 +41,7 @@
     loadJsonLayer,
     FlyToTileSet,
     FlyToJsonLayer
-  } from "./cesium";
+  } from "./cesium"
 
   import jsondata from "@/assets/json/yunnanshi.json";
 
@@ -44,11 +49,12 @@
     name: '',
     components: {
       DialogDrag,
+      toolbar
       // DropArea
     },
     data() {
       return {
-        LayerTreeVisible:true,
+        LayerTreeVisible:false,
         LayerTreeData: [],
         cesiumData: null,
         layerDataMap: new Map(),
@@ -62,7 +68,7 @@
           wHeight: undefined,
           latitude: undefined,
           longitude: undefined
-        }
+        },
       }
     },
     computed: {
@@ -129,7 +135,7 @@
           return (
             <span class="custom-tree-node">
               <span> 
-                <svg-icon style="margin-right:8px" icon-class={icon[node.level-1]} />
+                <svg-icon style="margin-right:8px" icon-class="project" />
                 <span>{node.label}</span>
               </span>  
               <span>
@@ -191,8 +197,12 @@
         event.stopPropagation()  
         // alert("re")
         console.log({node, data})
+        console.log(this.cesiumObjs.viewer.scene.primitives)
+        // debugger
         this.cesiumObjs.viewer.dataSources.removeAll(true)
         this.cesiumObjs.viewer.scene.primitives.removeAll();
+        
+        // this.cesiumObjs.viewer.scene.primitives.destroy();
         store.dispatch("RemoveCesiumData", node.label);
         // deleteProjectByName(data.label).then(res => {
         //   // console.log(res);
@@ -222,6 +232,9 @@
           default:
             break;
         }
+      },
+      openLayerTreePanel(bool) {
+        this.LayerTreeVisible = true
       }
     }
   }
@@ -279,6 +292,12 @@
     font-size: 13px;
     color: #e9e9e9;
     text-shadow: 2px 2px 2px #000;
+  }
+  .tooltip{
+    color: #e9e9e9;
+    text-shadow: 2px 2px 2px #000;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: none;
   }
 </style>
 

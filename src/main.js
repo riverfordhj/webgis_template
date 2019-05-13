@@ -6,6 +6,8 @@ import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import locale from 'element-ui/lib/locale/lang/en' // lang i18n
 
+import * as VueMenu from '@hscmap/vue-menu'
+
 import '@/styles/index.scss' // global css
 
 import App from './App'
@@ -21,6 +23,8 @@ import * as filters from './filters' // global filters
 import '@/permission' // permission control
 
 Vue.use(ElementUI, { locale })
+
+Vue.use(VueMenu)
 
 Object.keys(filters).forEach(key => {
   Vue.filter(key, filters[key])

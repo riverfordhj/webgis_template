@@ -1,0 +1,95 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <script src="https://cesiumjs.org/releases/1.56.1/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesiumjs.org/releases/1.56.1/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+  <style>
+    html,
+    body,
+    cesiumContainer {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .cesium-widget-credits {
+      display: none !important;
+      visibility: hidden !important;
+    }
+
+    .footer {
+      left: 0px;
+      right: 0px;
+      bottom: 0px;
+      position: absolute;
+      z-index: 991;
+      padding: 3px 10px;
+      font-size: 13px;
+      color: #e9e9e9;
+      text-shadow: 2px 2px 2px #000;
+      background-color: rgba(0, 0, 0, .4);
+    }
+
+    .footerItem {
+      float: right;
+      min-width: 80px;
+      margin-right: 20px;
+      font-size: 13px;
+      color: #e9e9e9;
+      text-shadow: 2px 2px 2px #000;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="cesiumContainer"></div>
+  <!-- <button type="button" class="btn btn-info" id="moni" style="position:absolute;top:20px;" onclick="SetMode('drawPloy')">面积</button>
+  <button type="button" class="btn btn-info" style="position:absolute;top:20px;left: 95px;" onclick="SetMode('drawLine')">测量</button>
+  <button type="button" class="btn btn-info" style="position:absolute;top:20px;left: 185px;" onclick="clearDrawingBoard()">清除</button> -->
+  <div class="footer">
+    <div class="footerItem" id="heightDiv">高度：</div>
+    <!-- <div class="footerItem" id="altitudeDiv">海拔：</div> -->
+    <div class="footerItem" id="latitudeDiv">纬度：</div>
+    <div class="footerItem" id="longitudeDiv">经度：</div>
+  </div>
+  <script>
+    Cesium.Ion.defaultAccessToken =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5MjMyYjZiMC1lZmY1LTQzNmEtODg1NS01NmQzMmE2NWY2ZjMiLCJpZCI6NDQ1MSwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MDg4NTM2Mn0.7OzWWlmUmJv_EJo0RFpuiL2G_KLgZBENAAXOgU1O1qM';
+
+    var viewer = new Cesium.Viewer('cesiumContainer', {
+      geocoder: false, //搜索
+      homeButton: false, //主页 地球回正
+      sceneModePicker: false, //地球平铺 网格  3d/2d选择器
+      baseLayerPicker: true,
+      animation: false, //是否创建动画小器件，左下角仪表
+      selectionIndicator: false,
+      fullscreenButton: false,
+      // infoBox: true,
+      navigationHelpButton: false, //是否显示右上角的帮助按钮
+      timeline: false,
+      // baseLayerPicker: true //图层选择器
+    });
+
+  //   // Load Cesium World Terrain
+  // viewer.terrainProvider = Cesium.createWorldTerrain({
+  //   requestWaterMask: true, // required for water effects
+  //   requestVertexNormals: true // required for terrain lighting
+  // });
+  // // Enable depth testing so things behind the terrain disappear.
+  // viewer.scene.globe.depthTestAgainstTerrain = true;
+
+    var tileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
+      url: "http://localhost/dianyun/tileset.json",
+    }))
+    debugger
+
+    tileset.readyPromise.then(function () {
+      debugger
+      viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0.5, -0.2, tileset.boundingSphere.radius * 4.0));
+    });
+  </script>
+</body>
+
+</html>

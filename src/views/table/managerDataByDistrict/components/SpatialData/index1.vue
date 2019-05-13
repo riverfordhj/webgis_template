@@ -7,7 +7,7 @@
       <el-tooltip class="item" effect="dark" content="删除选中数据" placement="top">
         <el-button type="danger"  size="small" @click="handleDelete">删除数据</el-button>
       </el-tooltip>
-      <el-tooltip class="item" effect="dark" content="添加所有数据到地图" placement="top">
+      <el-tooltip class="item" effect="dark" content="添加选中数据到地图" placement="top">
         <el-button type="primary" size="small" @click="addDataToStore">加载到地图</el-button>  
       </el-tooltip>
     </div>
