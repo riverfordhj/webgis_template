@@ -79,7 +79,7 @@
     watch: {
       getLayerResources(newVal, oldVal) {
         // this.cesiumData = val
-        // console.log(newVal)
+        console.log(newVal)
         this.LayerTreeData = []
         this.creatLayerTree(newVal)
       }
@@ -102,15 +102,17 @@
           var temp = [];
           value.map(col => {
             this.loadLayer(col)
-
             if (
-              !temp.some(tCol => {
-                return tCol["type"] === col["type"]
+              !temp.some(type => {
+                // debugger
+                return type === col["type"]
               })
             ) {
+              // debugger
               temp.push(col["type"]);
             }
           });
+          console.log(temp)
           for(let i in temp){
             let level2 = {
               label: temp[i],
@@ -127,6 +129,7 @@
             level1.children.push(level2)
           }
           this.LayerTreeData.push(level1)
+          console.log(this.LayerTreeData)
         }
       },
       renderContent(h, { node, data, store }) {
@@ -161,7 +164,12 @@
           switch(target.type) {
             case "三维倾斜测量":
             case "BIM":
+            case "点云":
               FlyToTileSet(target.obj, this.cesiumObjs.viewer);
+              break;
+            case "JSON":  
+              FlyToJsonLayer(target.obj, this.cesiumObjs.viewer)
+              break
             default:
               break
           }
@@ -169,25 +177,36 @@
         }
       },
       handleCheckChange(data, node) {
+        debugger
         for (let [key, value] of this.layerDataMap) {
           switch(value.type) {
             case "三维倾斜测量":
             case "BIM":
+            case "点云":
               value.obj.show = false
+              break
+            case "JSON":
+              value.obj.show = false
+              break
             default:
               break
           }
         }
 
         // var target = this.layerDataMap.get(data.label);
-        console.log({data, node})
+        // console.log({data, node})
         node.checkedNodes.map(checkedNode => {
           let target = this.layerDataMap.get(checkedNode.label)
           if(target){
             switch(target.type) {
               case "三维倾斜测量":
               case "BIM":
+              case "点云":
                 target.obj.show = true;
+                break
+              case "JSON":
+                target.obj.show = true
+                break
             }
           }
         })
@@ -212,10 +231,19 @@
         // })
       },
       loadLayer({ serverAddress, type, name, position }) {
+        var _this = this
         switch (type) {
+          case "JSON":
+            var obj = loadJsonLayer(this.cesiumObjs.viewer, serverAddress,function(datasource){
+              _this.layerDataMap.set(name, {type:type, obj: datasource})
+            })
+            // this.layerDataMap.set(name, {type:type, obj: obj})
+            break;
           case "二维矢量":
             // var obj = AddJsonLayer(this.cesiumObjs.viewer, serverAddress, true);
             // this.tilesets.set(name, obj);
+            // var obj = loadJsonLayer(this.cesiumObjs.viewer, serverAddress)
+           
             this.layerDataMap.set(name, {type:type, obj: obj})
             break;
           case "三维倾斜测量":
@@ -224,6 +252,7 @@
             this.layerDataMap.set(name, {type:type, obj: obj})
             break;
           case "BIM":
+          case "点云":
             var arr = position.split(",");
             var obj = Load3dtiles(serverAddress, this.cesiumObjs.viewer, arr);
             // this.tilesets.set(name, obj);

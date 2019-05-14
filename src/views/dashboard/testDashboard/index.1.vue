@@ -12,7 +12,7 @@
       </el-col>
       <el-col :xs="24" :sm="12" :md="12" :lg="12">
         <div class="chart-wrapper">
-          <map-chart :height="'634px'" />          
+          <map-chart :height="'634px'" @showDialog="showDialog" />          
         </div>
       </el-col>
       <el-col :xs="0" :sm="6" :md="6" :lg="6">
@@ -26,6 +26,9 @@
       </el-col>
     </el-row>
     <panel-group />
+    <el-dialog :visible="dialogVisible">
+       <Project-Msg :projectMessage="projectMessage" />
+    </el-dialog>
   </div>
 </template>
 
@@ -35,12 +38,14 @@
   import RaddarChart from '../../dashboard/admin/components/RaddarChart.vue'
   import MapChart from './components/MapChart.vue'
   import PanelGroup from '../../dashboard/admin/components/PanelGroup'
+  import ProjectMsg from "../../table/managerDataByDistrict/components/ProjectMsg/index.vue";
 
   export default {
     name: '',
     data() {
       return {
-        
+        dialogVisible: false,
+        projectMessage: null
       }
     },
     components: {
@@ -49,6 +54,14 @@
       RaddarChart,
       MapChart,
       PanelGroup
+    },
+    methods:{
+      showDialog(data){
+        debugger
+        alert("asd")
+        this.dialogVisible = true
+        this.projectMessage = data
+      }
     }
   }
 </script>

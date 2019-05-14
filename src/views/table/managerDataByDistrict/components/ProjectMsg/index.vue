@@ -111,7 +111,7 @@
         <div class="grid-xl">项目概述</div>
       </el-col>
       <el-col :span="20">
-        <div class="grid-xl">{{projectMessage.Description}}</div>
+        <div class="grid-p">{{projectMessage.Description}}</div>
       </el-col>  
     </el-row>
     <el-row>
@@ -119,7 +119,7 @@
         <div class="grid-xl">项目成果</div>
       </el-col>
       <el-col :span="20">
-        <div class="grid-xl">{{projectMessage.Outcome}}</div>
+        <div class="grid-p">{{projectMessage.Outcome}}</div>
       </el-col>  
     </el-row>
   </div>
@@ -161,9 +161,17 @@ export default {
 }
 
 .grid-xl {
-  min-height: 160px;
+  min-height: 170px;
   border: 1px solid #ebeef5;
   text-align: center;
   line-height: 150px;
+}
+
+.grid-p{
+  text-indent: 2em;
+  padding: 1em;
+  line-height: 2;
+  border: 1px solid #ebeef5;
+  min-height: 170px;
 }
 </style>

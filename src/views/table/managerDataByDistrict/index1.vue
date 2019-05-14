@@ -40,7 +40,7 @@
         </el-scrollbar >            
       </el-aside>
       <el-main class="main" v-loading="mainLoading">
-        <el-tabs type="border-card">
+        <el-tabs v-model="activeName" type="border-card">
           <el-tab-pane label="空间数据" name="first">
             <Spatial-Data :spatialData="spatialData" :procjectName="procjectName" />
           </el-tab-pane>
@@ -67,6 +67,7 @@ export default {
   name: "",
   data() {
     return {
+      activeName: 'first',
       projectMessage: {},
       spatialData: [],
       procjectName: "",

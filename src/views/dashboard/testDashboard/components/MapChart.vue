@@ -1,5 +1,5 @@
 <template>
-  <div :class="className" :style="{height:height,width:width}"/>
+    <div :class="className" :style="{height:height,width:width}"/>
 </template>
 
 <script>
@@ -9,8 +9,10 @@ import { debounce } from "@/utils";
 // import "../../../../../node_modules/echarts/map/js/china.js";
 import "../../../../../node_modules/echarts/map/js/province/yunnan.js";
 import json from "../../../../../node_modules/echarts/map/json/province/yunnan.json";
-
 import yunnan_pt from "@/assets/json/yunnan_pt.json";
+import tonghai from "@/assets/json/tonghai.json";
+
+import { getRelatedDataByName } from "@/api/project.js"
 
 const animationDuration = 6000;
 
@@ -155,7 +157,7 @@ export default {
           {
             type: "scatter",
             coordinateSystem: "geo",
-            data: this.covertData(yunnan_pt),
+            data: this.covertData(tonghai),
             symbolSize: function(val) {
               return val[2] * 2;
             },
@@ -183,12 +185,15 @@ export default {
       var self = this;
       this.chart.on("click", function(params) {
         if(params.componentType === "series"){
-          self.$notify({
-            title: "响应",
-            message: `值为${params.data.value[2]}`,
-            type: "success",
-            duration: 2000
-          });
+          // self.$notify({
+          //   title: "响应",
+          //   message: `值为${params.data.name}`,
+          //   type: "success",
+          //   duration: 2000
+          // });
+          getRelatedDataByName(params.data.name).then(res => {
+            self.$emit("showDialog", res.data)
+          })
         }      
       });
 
@@ -197,7 +202,7 @@ export default {
       let res = [];
       json.features.map(data => {
         res.push({
-          name: data.properties.CID,
+          name: data.properties.name,
           value: data.geometry.coordinates.concat(data.properties.test)
         });
       });

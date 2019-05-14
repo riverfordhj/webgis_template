@@ -9,7 +9,7 @@
       </el-col>
       <el-col :xs="24" :sm="12" :md="12" :lg="12" style="height:100%">
         <div class="chart-wrapper" style="height:100%">
-          <map-chart />          
+          <map-chart @showDialog="showDialog"/>          
         </div>
       </el-col>
       <el-col :xs="0" :sm="6" :md="6" :lg="6" style="height:100%">
@@ -20,6 +20,9 @@
       </el-col>
     </el-row>
     <panel-group />
+    <el-dialog :visible.sync = "dialogVisible">
+       <Project-Msg :projectMessage="projectMessage" />
+    </el-dialog>
   </div>
 </template>
 
@@ -29,18 +32,30 @@ import PieChart from "../../dashboard/admin/components/PieChart.vue";
 import RaddarChart from "../../dashboard/admin/components/RaddarChart.vue";
 import MapChart from "./components/MapChart.vue";
 import PanelGroup from "../../dashboard/admin/components/PanelGroup";
+import ProjectMsg from "../../table/managerDataByDistrict/components/ProjectMsg/index.vue";
+
 
 export default {
   name: "",
   data() {
-    return {};
+    return {
+      dialogVisible: false,
+      projectMessage: null
+    };
   },
   components: {
     BarChart,
     PieChart,
     RaddarChart,
     MapChart,
-    PanelGroup
+    PanelGroup,
+    ProjectMsg
+  },
+  methods:{
+    showDialog(data){
+      this.dialogVisible = true
+      this.projectMessage = data
+    }
   }
 };
 </script>

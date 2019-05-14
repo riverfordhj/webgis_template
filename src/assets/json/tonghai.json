@@ -1,0 +1,14 @@
+{
+  "type": "FeatureCollection",
+  "features": [{
+    "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [102.75, 24.12]
+      },
+      "properties": {
+        "name": "玉溪红河通海段",
+        "test": "9"
+      }
+  }]
+}

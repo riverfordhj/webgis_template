@@ -16,7 +16,7 @@
           <hsc-menu-item label="测量长度" @click="measurePolylineEvent" />
           <hsc-menu-item label="测量面积" @click="measurePolygonEvent" />
           <hsc-menu-item label="测量高度" @click="measureHeightEvent" />
-          <hsc-menu-item label="移除测量" @click="removeEntities(dataSource)" />
+          <hsc-menu-item label="移除测量" @click="removeEntities(measureSource)" />
         </hsc-menu-bar-item>
       </hsc-menu-bar>    
     </hsc-menu-style-white>
@@ -32,7 +32,7 @@ export default {
   data() {
     return {
       dataSource: new Map(),
-      dataSource1: new Cesium.DataSourceCollection(),
+      measureSource: new Map(),
       drawHandler: null,
       radiansPerDegree: Math.PI / 180.0,
       degreesPerRadian: 180.0 / Math.PI,
@@ -288,8 +288,8 @@ export default {
             false
           );
           _this.viewer.entities.add(this.options);
-          _this.dataSource.set(this.options.id, this.options);
-          _this.dataSource1.add(this.options);
+          _this.measureSource.set(this.options.id, this.options);
+          // _this.dataSource1.add(this.options);
         };
         return _;
       })();
@@ -332,29 +332,6 @@ export default {
         _this.hideTooltip()     
       }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
     },
-    getSpaceDistance(positions) {
-      var distance = 0;
-      for (var i = 0; i < positions.length - 1; i++) {
-        var point1cartographic = Cesium.Cartographic.fromCartesian(
-          positions[i]
-        );
-        var point2cartographic = Cesium.Cartographic.fromCartesian(
-          positions[i + 1]
-        );
-        /**根据经纬度计算出距离**/
-        var geodesic = new Cesium.EllipsoidGeodesic();
-        geodesic.setEndPoints(point1cartographic, point2cartographic);
-        var s = geodesic.surfaceDistance;
-        //console.log(Math.sqrt(Math.pow(distance, 2) + Math.pow(endheight, 2)));
-        //返回两点之间的距离
-        s = Math.sqrt(
-          Math.pow(s, 2) +
-            Math.pow(point2cartographic.height - point1cartographic.height, 2)
-        );
-        distance = distance + s;
-      }
-      return distance.toFixed(2);
-    },
     measurePolygon() {
       this.clearHandler();
       var _this = this;
@@ -386,7 +363,7 @@ export default {
           );
           _this.viewer.entities.add(this.options);
           // _this.dataSource.push(this.options)
-          _this.dataSource.set(this.options.id, this.options);
+          _this.measureSource.set(this.options.id, this.options);
         };
         return _;
       })();
@@ -429,51 +406,7 @@ export default {
         _this.drawHandler = null;
         _this.hideTooltip()
       }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
-    },
-    //计算多边形面积
-    getArea(points) {
-      var res = 0;
-      //拆分三角曲面
-      for (var i = 0; i < points.length - 2; i++) {
-        var j = (i + 1) % points.length;
-        var k = (i + 2) % points.length;
-        var totalAngle = this.angle(points[i], points[j], points[k]);
-        // var dis_temp1 = distance(positions[i], positions[j]);
-        var dis_temp1 = this.getSpaceDistance([points[i], points[j]]);
-        // var dis_temp2 = distance(positions[j], positions[k]);
-        var dis_temp2 = this.getSpaceDistance([points[j], points[k]]);
-        // debugger
-        res += dis_temp1 * dis_temp2 * Math.abs(Math.sin(totalAngle));
-      }
-      return (res / 1000000.0).toFixed(4);
-    },
-    //角度
-    angle(p1, p2, p3) {
-      var bearing21 = this.bearing(p2, p1);
-      var bearing23 = this.bearing(p2, p3);
-      var angle = bearing21 - bearing23;
-      if (angle < 0) {
-        angle += 360;
-      }
-      return angle;
-    },
-    //方向
-    bearing(from, to) {
-      var lat1 = from.x * this.radiansPerDegree;
-      var lon1 = from.y * this.radiansPerDegree;
-      var lat2 = to.x * this.radiansPerDegree;
-      var lon2 = to.y * this.radiansPerDegree;
-      var angle = -Math.atan2(
-        Math.sin(lon1 - lon2) * Math.cos(lat2),
-        Math.cos(lat1) * Math.sin(lat2) -
-          Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon1 - lon2)
-      );
-      if (angle < 0) {
-        angle += Math.PI * 2.0;
-      }
-      angle = angle * this.degreesPerRadian; //角度
-      return angle;
-    },
+    },    
     measureHeight() {
       var _this = this
       this.clearHandler()
@@ -506,8 +439,8 @@ export default {
             false
           );
           _this.viewer.entities.add(this.options);
-          _this.dataSource.set(this.options.id, this.options);
-          _this.dataSource1.add(this.options);
+          _this.measureSource.set(this.options.id, this.options);
+          // _this.dataSource1.add(this.options);
         };
         return _;
       })();
@@ -553,6 +486,73 @@ export default {
           }
         }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+    },    
+    getSpaceDistance(positions) {
+      var distance = 0;
+      for (var i = 0; i < positions.length - 1; i++) {
+        var point1cartographic = Cesium.Cartographic.fromCartesian(
+          positions[i]
+        );
+        var point2cartographic = Cesium.Cartographic.fromCartesian(
+          positions[i + 1]
+        );
+        /**根据经纬度计算出距离**/
+        var geodesic = new Cesium.EllipsoidGeodesic();
+        geodesic.setEndPoints(point1cartographic, point2cartographic);
+        var s = geodesic.surfaceDistance;
+        //console.log(Math.sqrt(Math.pow(distance, 2) + Math.pow(endheight, 2)));
+        //返回两点之间的距离
+        s = Math.sqrt(
+          Math.pow(s, 2) +
+            Math.pow(point2cartographic.height - point1cartographic.height, 2)
+        );
+        distance = distance + s;
+      }
+      return distance.toFixed(2);
+    },
+    //计算多边形面积
+    getArea(points) {
+      var res = 0;
+      //拆分三角曲面
+      for (var i = 0; i < points.length - 2; i++) {
+        var j = (i + 1) % points.length;
+        var k = (i + 2) % points.length;
+        var totalAngle = this.angle(points[i], points[j], points[k]);
+        // var dis_temp1 = distance(positions[i], positions[j]);
+        var dis_temp1 = this.getSpaceDistance([points[i], points[j]]);
+        // var dis_temp2 = distance(positions[j], positions[k]);
+        var dis_temp2 = this.getSpaceDistance([points[j], points[k]]);
+        // debugger
+        res += dis_temp1 * dis_temp2 * Math.abs(Math.sin(totalAngle));
+      }
+      return (res / 1000000.0).toFixed(4);
+    },
+    //角度
+    angle(p1, p2, p3) {
+      var bearing21 = this.bearing(p2, p1);
+      var bearing23 = this.bearing(p2, p3);
+      var angle = bearing21 - bearing23;
+      if (angle < 0) {
+        angle += 360;
+      }
+      return angle;
+    },
+    //方向
+    bearing(from, to) {
+      var lat1 = from.x * this.radiansPerDegree;
+      var lon1 = from.y * this.radiansPerDegree;
+      var lat2 = to.x * this.radiansPerDegree;
+      var lon2 = to.y * this.radiansPerDegree;
+      var angle = -Math.atan2(
+        Math.sin(lon1 - lon2) * Math.cos(lat2),
+        Math.cos(lat1) * Math.sin(lat2) -
+          Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon1 - lon2)
+      );
+      if (angle < 0) {
+        angle += Math.PI * 2.0;
+      }
+      angle = angle * this.degreesPerRadian; //角度
+      return angle;
     },
     clearHandler() {
       if (this.drawHandler) {
