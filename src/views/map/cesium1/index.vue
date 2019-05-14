@@ -3,9 +3,9 @@
     <div id="cesiumContainer">
     </div>
     <toolbar @openLayerTreePanel="openLayerTreePanel" :viewer="cesiumObjs.viewer" />  
-    <div id="lineTooltip" class="tooltip"></div>
-    <div id="areaTooltip" class="tooltip"></div>
-    <div id="heightTooltip" class="tooltip"></div>
+    <div id="tooltip" class="tooltip"></div>
+    <!-- <div id="areaTooltip" class="tooltip"></div>
+    <div id="heightTooltip" class="tooltip"></div> -->
     <dialog-drag v-show="LayerTreeVisible" id="dialog-2" class="dialog-3" title="图层目录" :options="{ width:280 }" @close="closeDataTree">
         <el-scrollbar :native="false" style="height:100%">
           <el-tree 

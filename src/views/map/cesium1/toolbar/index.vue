@@ -7,15 +7,16 @@
         </hsc-menu-bar-item>
         <hsc-menu-bar-item label="绘制">
           <!-- <hsc-menu-separator/> -->
-          <hsc-menu-item label="绘制点" @click="drawPoint" />
-          <hsc-menu-item label="绘制线" @click="drawPolyline" />
-          <hsc-menu-item label="绘制面" @click="drawPolygon" />
+          <hsc-menu-item label="绘制点" @click="drawPointEvent" />
+          <hsc-menu-item label="绘制线" @click="drawPolylineEvent" />
+          <hsc-menu-item label="绘制面" @click="drawPolygonEvent" />
           <hsc-menu-item label="移除绘制" @click="removeEntities(dataSource)" />
         </hsc-menu-bar-item>
         <hsc-menu-bar-item label="测量">
-          <hsc-menu-item label="测量长度" @click="measurePolyline" />
-          <hsc-menu-item label="测量面积" @click="measurePolygon" />
-          <hsc-menu-item label="测量高度" @click="measureHeight" />
+          <hsc-menu-item label="测量长度" @click="measurePolylineEvent" />
+          <hsc-menu-item label="测量面积" @click="measurePolygonEvent" />
+          <hsc-menu-item label="测量高度" @click="measureHeightEvent" />
+          <hsc-menu-item label="移除测量" @click="removeEntities(dataSource)" />
         </hsc-menu-bar-item>
       </hsc-menu-bar>    
     </hsc-menu-style-white>
@@ -26,9 +27,6 @@
 import Cesium from "cesium/Cesium";
 import $ from "jquery";
 
-// import GlobeTracker from "./js/GlobeTracker.js"
-// import GlobePointDrawer from "./js/GlobePointDrawer.js"
-
 export default {
   name: "",
   data() {
@@ -37,30 +35,34 @@ export default {
       dataSource1: new Cesium.DataSourceCollection(),
       drawHandler: null,
       radiansPerDegree: Math.PI / 180.0,
-      degreesPerRadian: 180.0 / Math.PI
+      degreesPerRadian: 180.0 / Math.PI,
+      tooltip: null
     };
   },
   props: ["viewer"],
-  watch: {
-    viewer(val) {
-      this.init();
-    }
-  },
   mounted() {
-    // if(this.viewer){
-    //   this.init()
-    // }
   },
   methods: {
-    init() {
-      // this.tracker = new GlobeTracker(this.viewer,this.layerId,this.shapeDic,this.flag)
-      // console.log(this.traker)
-    },
-    open() {
-      alert("制作中");
-    },
     openLayerTreePanel() {
       this.$emit("openLayerTreePanel", true);
+    },
+    drawPointEvent() {
+      this.drawPoint()
+    },
+    drawPolylineEvent() {
+      this.drawPolyline()
+    },
+    drawPolygonEvent() {
+      this.drawPolygon()
+    },
+    measurePolylineEvent() {
+      this.measurePolyline()
+    },
+    measurePolygonEvent() {
+      this.measurePolygon()
+    },
+    measureHeightEvent() {
+      this.measureHeight()
     },
     drawPoint() {
       this.clearHandler();
@@ -85,13 +87,20 @@ export default {
           });
         }
         _this.viewer.entities.add(label);
-        // _this.dataSource.push(label)
         _this.dataSource.set(label.id, label);
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+      this.drawHandler.setInputAction(function(event) {
+        _this.showTooltip(event.endPosition, `左键单击画点，右键单击停止`)
+      }, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
+      this.drawHandler.setInputAction(function(event) {
+        _this.drawHandler.destroy()
+        _this.drawHandler = null
+        _this.hideTooltip()
+      }, Cesium.ScreenSpaceEventType.RIGHT_CLICK)
     },
     drawPolyline() {
       this.clearHandler();
-      var _this = this;
+      var _this = this;    
       var PolyLinePrimitive = (function() {
         function _(positions) {
           this.options = {
@@ -121,7 +130,6 @@ export default {
           );
           _this.viewer.entities.add(this.options);
           _this.dataSource.set(this.options.id, this.options);
-          _this.dataSource1.add(this.options);
         };
         return _;
       })();
@@ -132,15 +140,8 @@ export default {
       var positions = [];
       var poly = undefined;
       //鼠标左键单击画点
-      // debugger
       this.drawHandler.setInputAction(function(event) {
-        // var cartesian = _this.viewer.scene.camera.pickEllipsoid(
-        //   event.position,
-        //   _this.viewer.scene.globe.ellipsoid
-        // );
         var cartesian = _this.viewer.scene.pickPosition(event.position);
-        // var ray = _this.viewer.scene.camera.getPickRay(event.position);
-        // var cartesian = _this.viewer.scene.globe.pick(ray,  _this.viewer.scene);
         if (positions.length == 0) {
           positions.push(cartesian.clone());
         }
@@ -148,13 +149,7 @@ export default {
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
       //鼠标移动
       this.drawHandler.setInputAction(function(event) {
-        // var cartesian = _this.viewer.scene.camera.pickEllipsoid(
-        //   event.endPosition,
-        //   _this.viewer.scene.globe.ellipsoid
-        // );
         var cartesian = _this.viewer.scene.pickPosition(event.endPosition);
-        // var ray = _this.viewer.scene.camera.getPickRay(event.position);
-        // var cartesian = _this.viewer.scene.globe.pick(ray,  _this.viewer.scene);
         if (positions.length >= 2) {
           if (!Cesium.defined(poly)) {
             poly = new PolyLinePrimitive(positions);
@@ -163,6 +158,7 @@ export default {
               positions.pop();
               cartesian.y += 1 + Math.random();
               positions.push(cartesian);
+              _this.showTooltip(event.endPosition, `左键单击绘制，右键单击结束`)
             }
           }
         }
@@ -171,11 +167,13 @@ export default {
       this.drawHandler.setInputAction(function(event) {
         _this.drawHandler.destroy();
         _this.drawHandler = null;
+        // tooltip[0].style.display = "none"
+        _this.hideTooltip()
       }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
     },
     drawPolygon() {
       this.clearHandler();
-      var _this = this;
+      var _this = this;  
       var PolygonPrimitive = (function() {
         function _(positions) {
           this.options = {
@@ -228,10 +226,6 @@ export default {
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
       //鼠标移动
       this.drawHandler.setInputAction(function(event) {
-        // var cartesian = _this.viewer.scene.camera.pickEllipsoid(
-        //   event.endPosition,
-        //   _this.viewer.scene.globe.ellipsoid
-        // );
         var cartesian = _this.viewer.scene.pickPosition(event.endPosition);
         if (positions.length >= 2) {
           if (!Cesium.defined(poly)) {
@@ -241,6 +235,13 @@ export default {
               positions.pop();
               cartesian.y += 1 + Math.random();
               positions.push(cartesian);
+              // tooltip[0].style.left = event.endPosition.x + 10 + "px"
+              // tooltip[0].style.top = event.endPosition.y + 20 + "px"
+              // tooltip[0].style.display = "block"
+              // tooltip[0].style.position = "absolute"
+              // tooltip[0].innerText = `左键单击绘制，右键单击结束`
+              _this.showTooltip(event.endPosition, `左键单击绘制，右键单击结束`)
+              
             }
           }
         }
@@ -249,12 +250,14 @@ export default {
       this.drawHandler.setInputAction(function(event) {
         _this.drawHandler.destroy();
         _this.drawHandler = null;
+        // tooltip[0].style.display = "none"
+        _this.hideTooltip()      
       }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
     },
     measurePolyline() {
       this.clearHandler();
       var _this = this;
-      var tooltip = $("#lineTooltip");
+      var tooltip = $("#tooltip")      
       var positions = [];
       var poly = undefined;
       var PolyLinePrimitive = (function() {
@@ -301,11 +304,7 @@ export default {
         }
 
         var distance = this.getSpaceDistance(positions);
-        tooltip[0].style.left = event.position.x + 10 + "px";
-        tooltip[0].style.top = event.position.y + 20 + "px";
-        tooltip[0].style.display = "block";
-        tooltip[0].style.position = "absolute";
-        tooltip[0].innerText = `${distance}米`;
+        _this.showTooltip(event.position, `${distance}米`)
 
         positions.push(cartesian);
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
@@ -323,18 +322,14 @@ export default {
             }
           }
           var distance = this.getSpaceDistance(positions);
-          tooltip[0].style.left = event.endPosition.x + 10 + "px";
-          tooltip[0].style.top = event.endPosition.y + 20 + "px";
-          tooltip[0].style.display = "block";
-          tooltip[0].style.position = "absolute";
-          tooltip[0].innerText = `${distance}米`;
+          _this.showTooltip(event.endPosition, `${distance}米`)
         }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
       this.drawHandler.setInputAction(event => {
         _this.drawHandler.destroy();
-        _this.drawHandler = null;
-        tooltip.style.display = "none"      
+        _this.drawHandler = null; 
+        _this.hideTooltip()     
       }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
     },
     getSpaceDistance(positions) {
@@ -363,7 +358,7 @@ export default {
     measurePolygon() {
       this.clearHandler();
       var _this = this;
-      var tooltip = $("#areaTooltip")
+      var tooltip = $("#tooltip")
       var PolygonPrimitive = (function() {
         function _(positions) {
           this.options = {
@@ -404,10 +399,6 @@ export default {
 
       //鼠标单击画点
       this.drawHandler.setInputAction(function(event) {
-        // var cartesian = _this.viewer.scene.camera.pickEllipsoid(
-        //   event.position,
-        //   _this.viewer.scene.globe.ellipsoid
-        // );
         var cartesian = _this.viewer.scene.pickPosition(event.position);
         if (positions.length == 0) {
           positions.push(cartesian.clone());
@@ -418,10 +409,6 @@ export default {
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
       //鼠标移动
       this.drawHandler.setInputAction(function(event) {
-        // var cartesian = _this.viewer.scene.camera.pickEllipsoid(
-        //   event.endPosition,
-        //   _this.viewer.scene.globe.ellipsoid
-        // );
         var cartesian = _this.viewer.scene.pickPosition(event.endPosition);
         if (positions.length >= 2) {
           if (!Cesium.defined(poly)) {
@@ -431,11 +418,7 @@ export default {
               positions.pop();
               cartesian.y += 1 + Math.random();
               positions.push(cartesian);
-              tooltip[0].style.left = event.endPosition.x + 10 + "px";
-              tooltip[0].style.top = event.endPosition.y + 20 + "px";
-              tooltip[0].style.display = "block";
-              tooltip[0].style.position = "absolute";
-              tooltip[0].innerText = _this.getArea(positions) + "平方公里";
+              _this.showTooltip(event.endPosition, _this.getArea(positions) + "平方公里")
             }
           }
         }
@@ -444,6 +427,7 @@ export default {
       this.drawHandler.setInputAction(function(event) {
         _this.drawHandler.destroy();
         _this.drawHandler = null;
+        _this.hideTooltip()
       }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
     },
     //计算多边形面积
@@ -493,7 +477,7 @@ export default {
     measureHeight() {
       var _this = this
       this.clearHandler()
-      var tooltip = $("#heightTooltip")
+      var tooltip = $("#tooltip")
       var PolyLinePrimitive = (function() {
         function _(positions) {
           this.options = {
@@ -546,6 +530,7 @@ export default {
           positions.pop()
           _this.drawHandler.destroy()
           _this.drawHandler = null
+          _this.hideTooltip()
         }    
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
       this.drawHandler.setInputAction(function(event) {
@@ -563,21 +548,11 @@ export default {
               var newPoint = Cesium.Cartesian3.fromDegrees(lng,lat, cartographic1.height)
               positions.push(newPoint);
               var distance = _this.getSpaceDistance(positions);
-              tooltip[0].style.left = event.endPosition.x + 10 + "px";
-              tooltip[0].style.top = event.endPosition.y + 20 + "px";
-              tooltip[0].style.display = "block";
-              tooltip[0].style.position = "absolute";
-              tooltip[0].innerText = `${distance}米`;
+              _this.showTooltip(event.endPosition, `${distance}米`)
             }
           }
         }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-      //单击鼠标右键结束画线
-      // this.drawHandler.setInputAction(function(event) {
-      //   _this.drawHandler.destroy();
-      //   _this.drawHandler = null;
-      // }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
-
     },
     clearHandler() {
       if (this.drawHandler) {
@@ -589,6 +564,22 @@ export default {
       for (let [key, value] of dataSource) {
         this.viewer.entities.removeById(key);
       }
+    },
+    showTooltip(position, text) {
+      if(!tooltip){
+        this.tooltip = $("#tooltip")[0]
+      }
+      tooltip.style.left = position.x + 10 + "px";
+      tooltip.style.top = position.y + 20 + "px";
+      tooltip.style.display = "block";
+      tooltip.style.position = "absolute";
+      tooltip.innerText = text;
+    },
+    hideTooltip() {
+      if(!tooltip){
+        this.tooltip = $("#tooltip")[0]
+      }
+      tooltip.style.display = "none";
     }
   }
 };
