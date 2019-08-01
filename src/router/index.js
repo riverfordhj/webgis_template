@@ -83,30 +83,39 @@ export const constantRouterMap = [{
       icon: 'list'
     },
     children: [{
-        path: 'spatialData',
-        name: 'spatialData',
-        component: () => import('@/views/table/spatialData/index'),
+        path: 'baseData',
+        name: 'baseData',
+        component: () => import('@/views/table/baseData/index'),
         meta: {
-          title: '空间数据',
+          title: '基础数据',
           icon: 'table'
         }
       },
-      {
-        "path": "AtrributeData",
-        name: 'AtrributeData',
-        component: () => import('@/views/table/attributeData/index'),
-        meta: {
-          title: '属性数据',
-          icon: '3dmap'
-        }
-      },
+      // {
+      //   "path": "AtrributeData",
+      //   name: 'AtrributeData',
+      //   component: () => import('@/views/table/attributeData/index'),
+      //   meta: {
+      //     title: '属性数据',
+      //     icon: '3dmap'
+      //   }
+      // },
       {
         "path": "managerDataByDistrict",
         name: 'managerDataByDistrict',
         component: () => import('@/views/table/managerDataByDistrict/index1'),
         meta: {
-          title: '按行政区划',
+          title: '工程数据',
           icon: 'yunnan'
+        }
+      },
+      {
+        "path": "uploadProject",
+        name: 'uploadProject',
+        component: () => import('@/views/table/uploaderExcel/index'),
+        meta: {
+          title: '项目上传',
+          icon: 'upload'
         }
       }
     ]
@@ -123,7 +132,7 @@ export const constantRouterMap = [{
     children: [{
       path: 'DataAnalysis',
       name: 'DataAnalysis',
-      component: () => import('@/views/blank/index'),
+      component: () => import('@/views/statistics/index'),
       meta: {
         title: '统计分析',
         icon: 'chart'
@@ -168,7 +177,7 @@ export const constantRouterMap = [{
       }
     }, ]
   },
-  
+
 ]
 
 export default new Router({
@@ -180,51 +189,49 @@ export default new Router({
 })
 
 export const asyncRouterMap = [{
-    path: '/UserManagement',
-    component: Layout,
-    redirect: '/UserManagement/modifyPassword',
-    name: 'UserManagement',
-    alwaysShow: true,
-    meta: {
-      title: '用户管理',
-      icon: 'peoples',
-      // roles: ['admin'] 
+  path: '/UserManagement',
+  component: Layout,
+  redirect: '/UserManagement/modifyPassword',
+  name: 'UserManagement',
+  alwaysShow: true,
+  meta: {
+    title: '用户管理',
+    icon: 'peoples',
+    // roles: ['admin'] 
+  },
+  children: [{
+      path: 'createUser',
+      name: 'createUser',
+      component: () => import('@/views/user/createUser'),
+      meta: {
+        title: '创建用户',
+        icon: 'create',
+        roles: ['admin']
+      }
     },
-    children: [
-      {
-        path: 'createUser',
-        name: 'createUser',
-        component: () => import('@/views/user/createUser'),
-        meta: { 
-          title: '创建用户', 
-          icon: 'create' ,
-          roles: ['admin'] 
-        }
-      },
-      {
-        path: 'modifyPassword',
-        name: 'modifyPassword',
-        component: () => import('@/views/user/changePwd'),
-        meta: { 
-          title: '修改密码', 
-          icon: 'modifyPsd',
-          // roles: [] 
-        }
-      },
-      // {
-      //   path: 'findPassword',
-      //   name: 'findPassword',
-      //   component: () => import('@/views/user/findPwd'),
-      //   meta: { 
-      //     title: '找回密码', 
-      //     icon: 'modifyPsd',
-      //     // roles: [] 
-      //   }
-      // }
-    ]
-  },{
-    path: '*',
-    redirect: '/404',
-    hidden: true
-  }]
-  
+    {
+      path: 'modifyPassword',
+      name: 'modifyPassword',
+      component: () => import('@/views/user/changePwd'),
+      meta: {
+        title: '修改密码',
+        icon: 'modifyPsd',
+        // roles: [] 
+      }
+    },
+    // {
+    //   path: 'findPassword',
+    //   name: 'findPassword',
+    //   component: () => import('@/views/user/findPwd'),
+    //   meta: { 
+    //     title: '找回密码', 
+    //     icon: 'modifyPsd',
+    //     // roles: [] 
+    //   }
+    // }
+  ]
+}, {
+  path: '*',
+  redirect: '/404',
+  hidden: true
+}]

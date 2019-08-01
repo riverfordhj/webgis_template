@@ -63,6 +63,8 @@ import ProjectMsg from "./components/ProjectMsg/index.vue";
 import SpatialData from "./components/SpatialData/index1.vue";
 import TextData from "./components/TextData/index.vue";
 
+import store from "@/store"
+
 export default {
   name: "",
   data() {
@@ -142,7 +144,8 @@ export default {
           label: "西双版纳",
           className: "city",
         },
-      ]
+      ],
+      roles: []
     };
   },
   components: {
@@ -153,31 +156,48 @@ export default {
   created(){
     
   },
+  mounted(){
+    this.roles = store.getters.roles
+  },
   methods: {
     renderContent(h, { node, data, store }) {
       if (node.level === 1) {
-        return (
-          <span class="custom-tree-node">
-            <span> 
-              <svg-icon style="margin-right:8px" icon-class="city" />
-              <span>{node.label}</span>
-            </span>       
-          </span>
-        )        
-      } 
-      if (node.level === 2) {
-        return (
-          <span class="custom-tree-node">
-            <span>
-              <svg-icon style="margin-right:8px" icon-class="project" />
-              <span>{node.label}</span>
-            </span>           
-            <span>
-              <el-button size="mini" type="text" on-click={ (event) => {this.remove(node, data, event)}}>删除</el-button>
+          return (
+            <span class="custom-tree-node">
+              <span> 
+                <svg-icon style="margin-right:8px" icon-class="city" />
+                <span>{node.label}</span>
+              </span>       
             </span>
-          </span>         
-        );        
-      }   
+          )        
+        } 
+      if (this.roles.includes("admin") || this.roles.includes("spatialDataManager")) {     
+        if (node.level === 2) {
+          return (
+            <span class="custom-tree-node">
+              <span>
+                <svg-icon style="margin-right:8px" icon-class="project" />
+                <span>{node.label}</span>
+              </span>           
+              <span>
+                <el-button size="mini" type="text" on-click={ (event) => {this.remove(node, data, event)}}>删除</el-button>
+              </span>
+            </span>         
+          );        
+        }   
+      } else { 
+        if (node.level === 2) {
+          return (
+            <span class="custom-tree-node">
+              <span>
+                <svg-icon style="margin-right:8px" icon-class="project" />
+                <span>{node.label}</span>
+              </span>           
+            </span>         
+          );        
+        }   
+      }
+      
     },
     loadNode(node, resolve) {
       if (node.level === 0) {

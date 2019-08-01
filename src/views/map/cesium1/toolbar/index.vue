@@ -11,6 +11,10 @@
           <hsc-menu-item label="绘制线" @click="drawPolylineEvent" />
           <hsc-menu-item label="绘制面" @click="drawPolygonEvent" />
           <hsc-menu-item label="移除绘制" @click="removeEntities(dataSource)" />
+          <hsc-menu-item label="保存">
+            <hsc-menu-item label="geoJson" @click="saveAsJson" />
+            <hsc-menu-item label="kml" @click="saveAsKml" />
+          </hsc-menu-item>
         </hsc-menu-bar-item>
         <hsc-menu-bar-item label="测量">
           <hsc-menu-item label="测量长度" @click="measurePolylineEvent" />
@@ -18,17 +22,25 @@
           <hsc-menu-item label="测量高度" @click="measureHeightEvent" />
           <hsc-menu-item label="移除测量" @click="removeEntities(measureSource)" />
         </hsc-menu-bar-item>
-      </hsc-menu-bar>    
+      </hsc-menu-bar>
     </hsc-menu-style-white>
+    <property-dialog @setProperty="setProperty" :visible="propertyDialogVisible" />
   </div>
 </template>
 
 <script>
 import Cesium from "cesium/Cesium";
 import $ from "jquery";
+import tokml from "tokml";
+import GeoJSON from "geojson";
+import { saveAs } from 'file-saver';
+import PropertyDialog from './PropertyDialog'
 
 export default {
   name: "",
+  components: {
+    PropertyDialog
+  },
   data() {
     return {
       dataSource: new Map(),
@@ -36,7 +48,22 @@ export default {
       drawHandler: null,
       radiansPerDegree: Math.PI / 180.0,
       degreesPerRadian: 180.0 / Math.PI,
-      tooltip: null
+      tooltip: null,
+      geoData: {
+        points: [],
+        lines: [],
+        polylines: [],
+        gons: [],
+        polygons: [],
+      },
+      geoJSONObj: {
+        points: undefined,
+        polylines: undefined,
+        polygons: undefined
+      },
+      currentType: '', // point,polyline,polygon
+      propertyDialogVisible: false,
+      propertyForm: undefined
     };
   },
   props: ["viewer"],
@@ -70,11 +97,16 @@ export default {
       this.drawHandler = new Cesium.ScreenSpaceEventHandler(
         this.viewer.scene.canvas
       );
-      this.drawHandler.setInputAction(function(event) {
+      this.drawHandler.setInputAction(function (event) {
         var pickedObject = _this.viewer.scene.pick(event.position);
         //获取地形或模型对应的cartesian3
         var cartesian = _this.viewer.scene.pickPosition(event.position);
         if (Cesium.defined(cartesian)) {
+          _this.geoData.points.push(_this.transformCoordinate(cartesian))
+          _this.currentType = 'point'
+          // var s = GeoJSON.parse(_this.geoData.points, { Point: ['latitude', 'longitude'] });
+          // _this.geoJSONObj.points = s
+
           var label = new Cesium.Entity({
             position: cartesian,
             name: "point",
@@ -88,11 +120,14 @@ export default {
         }
         _this.viewer.entities.add(label);
         _this.dataSource.set(label.id, label);
+
+        //显示属性弹窗
+        _this.showPropertyDialog()
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-      this.drawHandler.setInputAction(function(event) {
+      this.drawHandler.setInputAction(function (event) {
         _this.showTooltip(event.endPosition, `左键单击画点，右键单击停止`)
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
-      this.drawHandler.setInputAction(function(event) {
+      this.drawHandler.setInputAction(function (event) {
         _this.drawHandler.destroy()
         _this.drawHandler = null
         _this.hideTooltip()
@@ -100,8 +135,8 @@ export default {
     },
     drawPolyline() {
       this.clearHandler();
-      var _this = this;    
-      var PolyLinePrimitive = (function() {
+      var _this = this;
+      var PolyLinePrimitive = (function () {
         function _(positions) {
           this.options = {
             name: "线",
@@ -118,9 +153,9 @@ export default {
           this._init();
         }
 
-        _.prototype._init = function() {
+        _.prototype._init = function () {
           var _self = this;
-          var _update = function() {
+          var _update = function () {
             return _self.positions;
           };
           //实时更新polyline.positions
@@ -140,15 +175,24 @@ export default {
       var positions = [];
       var poly = undefined;
       //鼠标左键单击画点
-      this.drawHandler.setInputAction(function(event) {
+      this.drawHandler.setInputAction(function (event) {
         var cartesian = _this.viewer.scene.pickPosition(event.position);
         if (positions.length == 0) {
           positions.push(cartesian.clone());
         }
         positions.push(cartesian);
+
+        // 获取geojson一条线的点位置
+        var position = _this.transformCoordinate(cartesian)
+        var unit = []
+        for (let i in position) {
+          unit.push(position[i])
+        }
+        _this.geoData.lines.push(unit)
+
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
       //鼠标移动
-      this.drawHandler.setInputAction(function(event) {
+      this.drawHandler.setInputAction(function (event) {
         var cartesian = _this.viewer.scene.pickPosition(event.endPosition);
         if (positions.length >= 2) {
           if (!Cesium.defined(poly)) {
@@ -164,17 +208,35 @@ export default {
         }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
       //单击鼠标右键结束画线
-      this.drawHandler.setInputAction(function(event) {
+      this.drawHandler.setInputAction(function (event) {
         _this.drawHandler.destroy();
         _this.drawHandler = null;
+
+        var cartesian = _this.viewer.scene.pickPosition(event.position);
+        var position = _this.transformCoordinate(cartesian)
+        var unit = []
+        for (let i in position) {
+          unit.push(position[i])
+        }
+        _this.geoData.lines.push(unit)
+
+        // 根据坐标点生成线的geojson
+        _this.geoData.polylines.push({ line: _this.geoData.lines })
+        _this.currentType = 'polyline'
+        //显示属性弹窗
+        _this.showPropertyDialog()
+        // var lines = GeoJSON.parse(_this.geoData.polylines, { 'LineString': 'line' });
+        // _this.geoJSONObj.polylines = lines
+        // _this.geoData.lines = []
+
         // tooltip[0].style.display = "none"
         _this.hideTooltip()
       }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
     },
     drawPolygon() {
       this.clearHandler();
-      var _this = this;  
-      var PolygonPrimitive = (function() {
+      var _this = this;
+      var PolygonPrimitive = (function () {
         function _(positions) {
           this.options = {
             name: "多边形",
@@ -189,9 +251,9 @@ export default {
           this._init();
         }
 
-        _.prototype._init = function() {
+        _.prototype._init = function () {
           var _self = this;
-          var _update = function() {
+          var _update = function () {
             return _self.hierarchy;
           };
           //实时更新polygon.hierarchy
@@ -213,7 +275,7 @@ export default {
       var poly = undefined;
 
       //鼠标单击画点
-      this.drawHandler.setInputAction(function(event) {
+      this.drawHandler.setInputAction(function (event) {
         // var cartesian = _this.viewer.scene.camera.pickEllipsoid(
         //   event.position,
         //   _this.viewer.scene.globe.ellipsoid
@@ -223,9 +285,17 @@ export default {
           positions.push(cartesian.clone());
         }
         positions.push(cartesian);
+
+        // 获取geojson一个面的点位置
+        var position = _this.transformCoordinate(cartesian)
+        var unit = []
+        for (let i in position) {
+          unit.push(position[i])
+        }
+        _this.geoData.gons.push(unit)
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
       //鼠标移动
-      this.drawHandler.setInputAction(function(event) {
+      this.drawHandler.setInputAction(function (event) {
         var cartesian = _this.viewer.scene.pickPosition(event.endPosition);
         if (positions.length >= 2) {
           if (!Cesium.defined(poly)) {
@@ -241,26 +311,46 @@ export default {
               // tooltip[0].style.position = "absolute"
               // tooltip[0].innerText = `左键单击绘制，右键单击结束`
               _this.showTooltip(event.endPosition, `左键单击绘制，右键单击结束`)
-              
+
             }
           }
         }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
       //鼠标右键单击结束绘制
-      this.drawHandler.setInputAction(function(event) {
+      this.drawHandler.setInputAction(function (event) {
         _this.drawHandler.destroy();
         _this.drawHandler = null;
+
+        var cartesian = _this.viewer.scene.pickPosition(event.position);
+
+        // 获取geojson一个面的点位置
+        var position = _this.transformCoordinate(cartesian)
+        var unit = []
+        for (let i in position) {
+          unit.push(position[i])
+        }
+        _this.geoData.gons.push(unit)
+
+        // 根据坐标点生成线的geojson
+        _this.geoData.polygons.push({ polygon: [_this.geoData.gons] })
+        _this.currentType = 'polygon'
+        //显示属性弹窗
+        _this.showPropertyDialog()
+        // var polygons = GeoJSON.parse(_this.geoData.polygons, { 'Polygon': 'polygon' });
+        // _this.geoJSONObj.polygons = polygons
+        // _this.geoData.gons = []
+
         // tooltip[0].style.display = "none"
-        _this.hideTooltip()      
+        _this.hideTooltip()
       }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
     },
     measurePolyline() {
       this.clearHandler();
       var _this = this;
-      var tooltip = $("#tooltip")      
+      var tooltip = $("#tooltip")
       var positions = [];
       var poly = undefined;
-      var PolyLinePrimitive = (function() {
+      var PolyLinePrimitive = (function () {
         function _(positions) {
           this.options = {
             name: "线",
@@ -277,9 +367,9 @@ export default {
           this._init();
         }
 
-        _.prototype._init = function() {
+        _.prototype._init = function () {
           var _self = this;
-          var _update = function() {
+          var _update = function () {
             return _self.positions;
           };
           //实时更新polyline.positions
@@ -328,15 +418,15 @@ export default {
 
       this.drawHandler.setInputAction(event => {
         _this.drawHandler.destroy();
-        _this.drawHandler = null; 
-        _this.hideTooltip()     
+        _this.drawHandler = null;
+        _this.hideTooltip()
       }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
     },
     measurePolygon() {
       this.clearHandler();
       var _this = this;
       var tooltip = $("#tooltip")
-      var PolygonPrimitive = (function() {
+      var PolygonPrimitive = (function () {
         function _(positions) {
           this.options = {
             name: "多边形",
@@ -351,9 +441,9 @@ export default {
           this._init();
         }
 
-        _.prototype._init = function() {
+        _.prototype._init = function () {
           var _self = this;
-          var _update = function() {
+          var _update = function () {
             return _self.hierarchy;
           };
           //实时更新polygon.hierarchy
@@ -375,7 +465,7 @@ export default {
       var poly = undefined;
 
       //鼠标单击画点
-      this.drawHandler.setInputAction(function(event) {
+      this.drawHandler.setInputAction(function (event) {
         var cartesian = _this.viewer.scene.pickPosition(event.position);
         if (positions.length == 0) {
           positions.push(cartesian.clone());
@@ -385,7 +475,7 @@ export default {
         console.log(textArea);
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
       //鼠标移动
-      this.drawHandler.setInputAction(function(event) {
+      this.drawHandler.setInputAction(function (event) {
         var cartesian = _this.viewer.scene.pickPosition(event.endPosition);
         if (positions.length >= 2) {
           if (!Cesium.defined(poly)) {
@@ -401,17 +491,17 @@ export default {
         }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
       //鼠标右键单击结束绘制
-      this.drawHandler.setInputAction(function(event) {
+      this.drawHandler.setInputAction(function (event) {
         _this.drawHandler.destroy();
         _this.drawHandler = null;
         _this.hideTooltip()
       }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
-    },    
+    },
     measureHeight() {
       var _this = this
       this.clearHandler()
       var tooltip = $("#tooltip")
-      var PolyLinePrimitive = (function() {
+      var PolyLinePrimitive = (function () {
         function _(positions) {
           this.options = {
             name: "线",
@@ -428,9 +518,9 @@ export default {
           this._init();
         }
 
-        _.prototype._init = function() {
+        _.prototype._init = function () {
           var _self = this;
-          var _update = function() {
+          var _update = function () {
             return _self.positions;
           };
           //实时更新polyline.positions
@@ -452,21 +542,21 @@ export default {
       var startingPt = null
       //鼠标左键单击画点
       // debugger
-      this.drawHandler.setInputAction(function(event) {
+      this.drawHandler.setInputAction(function (event) {
         var cartesian = _this.viewer.scene.pickPosition(event.position);
         if (positions.length == 0) {
           positions.push(cartesian.clone());
           startingPt = cartesian
         }
         positions.push(cartesian);
-        if(positions.length > 2){
+        if (positions.length > 2) {
           positions.pop()
           _this.drawHandler.destroy()
           _this.drawHandler = null
           _this.hideTooltip()
-        }    
+        }
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-      this.drawHandler.setInputAction(function(event) {
+      this.drawHandler.setInputAction(function (event) {
         var cartesian = _this.viewer.scene.pickPosition(event.endPosition);
         if (positions.length >= 2) {
           if (!Cesium.defined(poly)) {
@@ -475,10 +565,10 @@ export default {
             if (cartesian != undefined) {
               positions.pop();
               var cartographic = _this.viewer.scene.globe.ellipsoid.cartesianToCartographic(startingPt)
-              var lat=Cesium.Math.toDegrees(cartographic.latitude)
-              var lng=Cesium.Math.toDegrees(cartographic.longitude)
+              var lat = Cesium.Math.toDegrees(cartographic.latitude)
+              var lng = Cesium.Math.toDegrees(cartographic.longitude)
               var cartographic1 = _this.viewer.scene.globe.ellipsoid.cartesianToCartographic(cartesian)
-              var newPoint = Cesium.Cartesian3.fromDegrees(lng,lat, cartographic1.height)
+              var newPoint = Cesium.Cartesian3.fromDegrees(lng, lat, cartographic1.height)
               positions.push(newPoint);
               var distance = _this.getSpaceDistance(positions);
               _this.showTooltip(event.endPosition, `${distance}米`)
@@ -486,7 +576,11 @@ export default {
           }
         }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-    },    
+    },
+    // drawBufferLine(){
+    //   var _this = this
+    //   this.clearHandler()
+    // },
     getSpaceDistance(positions) {
       var distance = 0;
       for (var i = 0; i < positions.length - 1; i++) {
@@ -504,7 +598,7 @@ export default {
         //返回两点之间的距离
         s = Math.sqrt(
           Math.pow(s, 2) +
-            Math.pow(point2cartographic.height - point1cartographic.height, 2)
+          Math.pow(point2cartographic.height - point1cartographic.height, 2)
         );
         distance = distance + s;
       }
@@ -546,7 +640,7 @@ export default {
       var angle = -Math.atan2(
         Math.sin(lon1 - lon2) * Math.cos(lat2),
         Math.cos(lat1) * Math.sin(lat2) -
-          Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon1 - lon2)
+        Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon1 - lon2)
       );
       if (angle < 0) {
         angle += Math.PI * 2.0;
@@ -554,19 +648,35 @@ export default {
       angle = angle * this.degreesPerRadian; //角度
       return angle;
     },
+    // 删除事件
     clearHandler() {
       if (this.drawHandler) {
         this.drawHandler.destroy();
         this.drawHandler = null;
       }
     },
+    // 移除要素
     removeEntities(dataSource) {
       for (let [key, value] of dataSource) {
         this.viewer.entities.removeById(key);
       }
+      this.geoData = {
+        points: [],
+        lines: [],
+        polylines: [],
+        gons: [],
+        polygons: [],
+      }
+
+      this.geoJSONObj = {
+        points: undefined,
+        polylines: undefined,
+        polygons: undefined
+      }
     },
+    // 显示tooltip
     showTooltip(position, text) {
-      if(!tooltip){
+      if (!tooltip) {
         this.tooltip = $("#tooltip")[0]
       }
       tooltip.style.left = position.x + 10 + "px";
@@ -575,11 +685,66 @@ export default {
       tooltip.style.position = "absolute";
       tooltip.innerText = text;
     },
+    // 隐藏tooltip
     hideTooltip() {
-      if(!tooltip){
+      if (!tooltip) {
         this.tooltip = $("#tooltip")[0]
       }
       tooltip.style.display = "none";
+    },
+    // 从cartesian转为经纬度
+    transformCoordinate(cartesian) {
+      var cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+      return {
+        longitude: Cesium.Math.toDegrees(cartographic.longitude),
+        latitude: Cesium.Math.toDegrees(cartographic.latitude)
+      }
+    },
+    // 保存为json
+    saveAsJson() {
+      for (let i in this.geoJSONObj) {
+        if (this.geoJSONObj[i]) {
+          this.saveFile(JSON.stringify(this.geoJSONObj[i]), `${i}.geojson`)
+        }
+      }
+    },
+    // 保存为kml
+    saveAsKml() {
+      for (let i in this.geoJSONObj) {
+        if (this.geoJSONObj[i]) {
+          var kml = tokml(this.geoJSONObj[i])
+          this.saveFile(kml, `${i}.kml`)
+        }
+      }
+    },
+    // 下载到本地
+    saveFile(content, name) {
+      saveAs(new Blob([content], {
+        type: 'text/plain;charset=utf-8'
+      }), name)
+    },
+    setProperty(form) {
+      switch (this.currentType) {
+        case 'point':
+          Object.assign(this.geoData.points[this.geoData.points.length - 1], form)
+          this.geoJSONObj.points = GeoJSON.parse(this.geoData.points, { Point: ['latitude', 'longitude'] })
+          break
+        case 'polyline':
+          Object.assign(this.geoData.polylines[this.geoData.polylines.length - 1], form)
+          this.geoJSONObj.polylines = GeoJSON.parse(this.geoData.polylines, { 'LineString': 'line' })
+          this.geoData.lines = []
+          break
+        case 'polygon':
+          Object.assign(this.geoData.polygons[this.geoData.polygons.length - 1], form)
+          this.geoJSONObj.polygons = GeoJSON.parse(this.geoData.polygons, { 'Polygon': 'polygon' })
+          this.geoData.gons = []
+          break
+        default:
+          return;
+      }
+    },
+    showPropertyDialog() {
+      this.propertyDialogVisible = !this.propertyDialogVisible
     }
   }
 };

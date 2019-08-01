@@ -1,18 +1,10 @@
 <template>
   <div class="app-container">
-    <div class="filter-container">
-      <el-tooltip class="item" effect="dark" content="填写表单添加数据" placement="top">
-        <el-button v-permission="['spatialDataManager','admin']" type="primary" size="small" @click="handleCreate" >添加数据</el-button>      
-      </el-tooltip>
-      <el-tooltip v-permission="['spatialDataManager','admin']" class="item" effect="dark" content="删除选中数据" placement="top">
-        <el-button type="danger"  size="small" @click="handleDelete">删除数据</el-button>
-      </el-tooltip>
-      <el-tooltip class="item" effect="dark" content="添加选中数据到地图" placement="top">
-        <el-button type="primary" size="small" @click="addDataToStore">加载到地图</el-button>  
-      </el-tooltip>
-      <el-input  v-model="search" style="width: 200px;float:right;" size="small" placeholder="请输入需查询字段" />
+    <div v-permission="['spatialDataManager']" class="filter-container">
+      <el-button type="primary" @click="handleCreate" >添加</el-button>
+      <el-button type="danger" @click="handleDelete">删除</el-button>
     </div>
-    <el-table v-loading="listLoading" :data="datas" border style="width: 100%" @selection-change="handleSelectionChange">
+    <el-table v-loading="listLoading" :data="tableData" border style="width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55"></el-table-column>
       <el-table-column prop="name" label="名称" align="center" width="auto"></el-table-column>
       <el-table-column prop="xzq" label="行政区" align="center"></el-table-column>
@@ -46,6 +38,12 @@
       <el-table-column prop="serverAddress" label="服务地址 / id" align="center"></el-table-column>
       <el-table-column prop="person" label="保存人员" align="center"></el-table-column>
       <el-table-column prop="phone" label="电话" align="center"></el-table-column>
+      <el-table-column prop="download" label="数据下载" align="center">
+        <template slot-scope="scope">
+          <!-- <el-button @click="showProp(scope.row.prop)" type="text" size="small">点击下载</el-button> -->
+          <el-button @click="addResourceToStore(scope.row)" type="text" size="small">加载到地图</el-button>
+        </template>
+      </el-table-column>
     </el-table>
 
     <el-dialog
@@ -94,115 +92,139 @@
   </div>
 </template>
 
-<script>
-  import store from "../../../../../store";
-  import permission from "@/directive/permission/index.js";
-
-  export default {
-    name: '',
-    data() {
-      return {
-        tableData: null,
-        listLoading: false,
-        multipleSelection: [],
-        dialogVisible: false,
-        search:"",
-        DataType: [
-          {
-            key: "二维矢量",
-            display_name: "二维矢量"
-          },
-          {
-            key: "三维倾斜测量",
-            display_name: "三维倾斜测量"
-          }
-        ],
-        temp: {
-          name: "",
-          xzq: "",
-          type: "",
-          format: "",
-          date: new Date(),
-          size: "",
-          status: "",
-          serverAddress: "",
-          person: "",
-          phone: ""
+  <script>
+import { getMockData } from "@/api/tableTestData";
+import { getSpatialData, addSpatialData, deleteSpatialData } from "@/api/spatialData";
+import store from "../../../store";
+import permission from "@/directive/permission/index.js";
+export default {
+  data() {
+    return {
+      tableData: null,
+      listLoading: false,
+      multipleSelection: [],
+      dialogVisible: false,
+      DataType: [
+        {
+          key: "二维矢量",
+          display_name: "二维矢量"
         },
-        rules: {
-          name: [{ required: true, message: "请输入数据名称", trigger: "blur" }],
-          type: [{ required: true, message: "请选择类型", trigger: "blur" }],
-          serverAddress: [
-            { required: true, message: "请输入服务地址", trigger: "blur" }
-          ]
-        },
-      }
-    },
-    props:{
-      spatialData: Array,
-      procjectName: String
-    },
-    directives:{
-      permission
-    },
-    watch:{
-      spatialData: val =>{
-        // console.log(val)
-      }
-    },
-    computed:{
-      datas:function(){
-        const search = this.search;
-        if(search){
-          return this.spatialData.filter(dataNews =>{
-            return Object.keys(dataNews).some(key =>{
-                return String(dataNews[key]).toLowerCase().indexOf(search) > -1        
-            })
-          })
+        {
+          key: "三维倾斜测量",
+          display_name: "三维倾斜测量"
         }
-        // console.log(this.tableData);
-        return this.spatialData
+      ],
+      temp: {
+        name: "",
+        xzq: "",
+        type: "",
+        format: "",
+        date: new Date(),
+        size: "",
+        status: "",
+        serverAddress: "",
+        person: "",
+        phone: ""
+      },
+      rules: {
+        name: [{ required: true, message: "请输入数据名称", trigger: "blur" }],
+        type: [{ required: true, message: "请选择类型", trigger: "blur" }],
+        serverAddress: [
+          { required: true, message: "请输入服务地址", trigger: "blur" }
+        ]
+      }
+    };
+  },
+  directives:{
+    permission
+  },
+  created() {
+    this.getList();
+  },
+  methods: {
+    getList() {
+      this.listLoading = true;
+      getSpatialData().then(reponse => {
+        this.tableData = reponse.data;
+        this.listLoading = false;
+      });
+    },
+    showProp(prop) {
+      console.log(prop);
+    },
+    addResourceToStore(data) {
+      // store.dispatch("AddResources", { data });
+      store.dispatch("AddCesiumData", {key:'基础数据', value:[data]});
+      this.$notify({
+        title: "通知",
+        message: "已加载!",
+        type: "success",
+        duration: 2000
+      });
+    },
+    handleSelectionChange(val) {
+      this.multipleSelection = val;
+    },
+    handleCreate() {
+      this.resetTemp();
+      this.dialogVisible = true;
+    },
+    handleDelete() {
+      if (this.multipleSelection.length !== 0) {
+        deleteSpatialData(this.multipleSelection).then(d => {
+          this.tableData = this.tableData
+          .concat(this.multipleSelection)
+          .filter(
+            v =>
+              !this.tableData.includes(v) || !this.multipleSelection.includes(v)
+          );
+          this.$notify({
+            title: "通知",
+            message: "已删除!",
+            type: "success",
+            duration: 2000
+          });
+        })       
+      } else {
+        this.$notify({
+          title: "警告",
+          message: "您未选中",
+          type: "warning",
+          duration: 2000
+        });
       }
     },
-    methods:{
-      handleSelectionChange(val) {
-        this.multipleSelection = val
-      },
-      addDataToStore() {
-        // var m = new Map()
-        // m.set(this.procjectName, this.spatialData);
-        // console.log(m)
-        // let set = new Set([[this.procjectName, this.spatialData]])
-        store.dispatch("AddCesiumData", {key:this.procjectName, value:this.multipleSelection});
-      },
-      handleCreate() {
-        this.resetTemp();
-        this.dialogVisible = true;
-      },
-      handleDelete() {
-        
-      },
-      resetTemp() {
-        this.temp = {
-          name: "",
-          xzq: "",
-          type: "",
-          format: "",
-          date: new Date(),
-          size: "",
-          status: "",
-          serverAddress: "",
-          person: "",
-          phone: ""
-        };
-      },
-      confirm() {
-
-      }
+    resetTemp() {
+      this.temp = {
+        name: "",
+        xzq: "",
+        type: "",
+        format: "",
+        date: new Date(),
+        size: "",
+        status: "",
+        serverAddress: "",
+        person: "",
+        phone: ""
+      };
+    },
+    confirm() {
+      this.$refs["dataForm"].validate(valid => {
+        if (valid) {
+          var self = this;
+          addSpatialData(this.temp).then(d =>{
+            self.tableData.unshift(self.temp);
+            this.dialogVisible = false;
+            this.$notify({
+              title: "成功",
+              message: "创建成功",
+              type: "success",
+              duration: 2000
+            });
+          })         
+        }
+      });
     }
   }
+};
 </script>
-
-<style lang="" scoped>
-  
-</style>

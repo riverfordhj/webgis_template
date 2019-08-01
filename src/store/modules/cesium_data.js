@@ -18,7 +18,6 @@ const cesium_data = {
       state.data = new Map(data)
     },
     REMOVE_CESIUM_DATA: (state, name) => {
-      debugger
       state.data.delete(name)
       state.data = new Map(state.data)
       //   deleteItem(state.esri_resources,resource,"serverAddress");

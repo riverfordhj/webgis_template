@@ -24,6 +24,7 @@ export const intCesium = function (self, CesiumNavigation, jsondata) {
     navigationHelpButton: false, //是否显示右上角的帮助按钮
     timeline: false,
     // baseLayerPicker: true //图层选择器
+    InfoBox: false
   });
 
   // Load Cesium World Terrain
@@ -156,60 +157,30 @@ export function loadJsonLayer(viewer, jsondata, callback) {
   var dataPromise = Cesium.GeoJsonDataSource.load(jsondata, geojsonOptions);
 
   dataPromise.then(function (dataSource) {
-    // Add the new data as entities to the viewer
     viewer.dataSources.add(dataSource);
-
-    // Save an new entity collection of baselayer data
-    // dataSource.entities.show = homeData.baselayershow;
-    // homeData.baselayerEntities = dataSource.entities;
-    // homeData.dataSource = dataSource;
-
-    // Get the array of entities
     var neighborhoodEntities = dataSource.entities.values;
+
+    var color = Cesium.Color.fromRandom({
+      alpha: 0.9
+    });
     for (var i = 0; i < neighborhoodEntities.length; i++) {
       var entity = neighborhoodEntities[i];
 
       if (Cesium.defined(entity.polygon)) {
-        // entity styling code here
-        // Use geojson neighborhood value as entity name
-        entity.name = entity.properties.Name;
-
-        // Set the polygon material to a random, translucent color.
         entity.polygon.material = Cesium.Color.fromRandom({
-          // red: 0.5,
-          // maximumGreen: 0.9,
-          // minimumBlue: 0.1,
-          alpha: 0.4
+          alpha: 0.6
         });
-
-        // Generate Polygon position
-        var polyPositions = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions;
-        var polyCenter = Cesium.BoundingSphere.fromPoints(polyPositions).center;
-        polyCenter = Cesium.Ellipsoid.WGS84.scaleToGeodeticSurface(polyCenter);
-
-        //polyCenter.z += 20000;
-        entity.position = polyCenter;
-        
-        // Generate labels
-        // entity.label = {
-        //   text: entity.name,
-        //   showBackground: true,
-        //   scale: 0.7,
-        //   horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-        //   verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-        //   heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-        //   distanceDisplayCondition: new Cesium.DistanceDisplayCondition(100.0, 2000000.0),
-        //   disableDepthTestDistance: 10000.0
-        // };
       }
-      dataSource.show = false
-
-    //  layerDataMap.set(name, {type:"JSON", obj: dataSource})
+      if (Cesium.defined(entity.polyline)) {
+        entity.polyline.material = color
+      }
+      if (Cesium.defined(entity.point)) {
+        entity.point.material = color
+      }
+      // dataSource.show = false
       callback(dataSource)
+      // console.log(viewer)
     }
-
-    // if (isFlyTo)
-    //   viewer.flyTo(dataSource);
   });
   return dataPromise;
 }

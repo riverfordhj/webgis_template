@@ -1,11 +1,12 @@
 <template>
   <div class="app-container">
-    <!-- <div class="filter-container">
-      <el-button type="primary" >添加</el-button>
-      <el-button type="danger" >删除</el-button>
-    </div> -->
+    <div class="filter-container">
+      <!-- <el-button type="primary" >添加</el-button>
+      <el-button type="danger" >删除</el-button> -->
+      <el-input  v-model="search" style="width: 200px;float:right;margin-bottom:10px" size="small" placeholder="请输入需查询字段" />
+    </div>
     <el-table
-      :data="list"
+      :data="datas"
       element-loading-text="Loading"
       border
       fit
@@ -56,7 +57,22 @@ export default {
   data() {
     return {
       list: null,
+      search:""
       // listLoading: true
+    }
+  },
+  computed:{
+    datas:function(){
+      const search = this.search;
+      if(search){
+        return this.list.filter(dataNews =>{
+          return Object.keys(dataNews).some(key =>{
+              return String(dataNews[key]).toLowerCase().indexOf(search) > -1        
+          })
+        })
+      }
+      // console.log(this.tableData);
+      return this.list
     }
   },
   created() {

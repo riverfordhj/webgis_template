@@ -280,7 +280,7 @@ export default {
           // this.tilesets.set(name, obj);
           // var obj = loadJsonLayer(this.cesiumObjs.viewer, serverAddress)
 
-          // this.layerDataMap.set(name, { type: type, obj: obj });
+          this.layerDataMap.set(name, { type: type, obj: obj });
           break;
         case "三维倾斜测量":
           var obj = Load3dtiles(serverAddress, this.cesiumObjs.viewer);
@@ -289,10 +289,10 @@ export default {
           break;
         case "BIM":
         case "点云":
-          // var arr = position.split(",");
-          // var obj = Load3dtiles(serverAddress, this.cesiumObjs.viewer, arr);
-          // // this.tilesets.set(name, obj);
-          // this.layerDataMap.set(name, { type: type, obj: obj });
+          var arr = position.split(",");
+          var obj = Load3dtiles(serverAddress, this.cesiumObjs.viewer, arr);
+          // this.tilesets.set(name, obj);
+          this.layerDataMap.set(name, { type: type, obj: obj });
           break;
         default:
           break;

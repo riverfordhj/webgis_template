@@ -1,5 +1,11 @@
 <template>
-  <div id="projectMeg" >
+<div class="app-container">
+  <div class="filter-container">
+    <!-- <el-tooltip class="item" effect="dark" content="编辑项目信息" placement="top">
+      <el-button v-permission="['spatialDataManager','admin']" type="primary" size="small" >编辑</el-button>      
+    </el-tooltip> -->
+  </div>
+  <div class="projectMeg">
     <el-row>
       <el-col :span="4">
         <div class="grid-normal">项目名称</div>
@@ -123,6 +129,8 @@
       </el-col>  
     </el-row>
   </div>
+</div>
+  
 </template>
 
 <script>
@@ -140,7 +148,7 @@ export default {
 </script>
 
 <style scoped>
-#projectMeg {
+.projectMeg {
   /* border: solid black */
   font-size: 14px;
   color: #606266;
