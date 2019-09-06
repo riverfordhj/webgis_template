@@ -1,0 +1,262 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <script src="https://cesiumjs.org/releases/1.56.1/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesiumjs.org/releases/1.56.1/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+  <style>
+    html,
+    body,
+    cesiumContainer {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .cesium-widget-credits {
+      display: none !important;
+      visibility: hidden !important;
+    }
+
+    .footer {
+      left: 0px;
+      right: 0px;
+      bottom: 0px;
+      position: absolute;
+      z-index: 991;
+      padding: 3px 10px;
+      font-size: 13px;
+      color: #e9e9e9;
+      text-shadow: 2px 2px 2px #000;
+      background-color: rgba(0, 0, 0, .4);
+    }
+
+    .footerItem {
+      float: right;
+      min-width: 80px;
+      margin-right: 20px;
+      font-size: 13px;
+      color: #e9e9e9;
+      text-shadow: 2px 2px 2px #000;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="cesiumContainer"></div>
+  <!-- <button type="button" class="btn btn-info" id="moni" style="position:absolute;top:20px;" onclick="SetMode('drawPloy')">面积</button>
+  <button type="button" class="btn btn-info" style="position:absolute;top:20px;left: 95px;" onclick="SetMode('drawLine')">测量</button>
+  <button type="button" class="btn btn-info" style="position:absolute;top:20px;left: 185px;" onclick="clearDrawingBoard()">清除</button> -->
+  <!-- <button type="button" class="btn btn-info" style="position:absolute;top:20px;left: 185px;"
+    onclick="testt()">test</button> -->
+  <div class="footer">
+    <div class="footerItem" id="heightDiv">高度：</div>
+    <!-- <div class="footerItem" id="altitudeDiv">海拔：</div> -->
+    <div class="footerItem" id="latitudeDiv">纬度：</div>
+    <div class="footerItem" id="longitudeDiv">经度：</div>
+  </div>
+  <script>
+    Cesium.Ion.defaultAccessToken =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5MjMyYjZiMC1lZmY1LTQzNmEtODg1NS01NmQzMmE2NWY2ZjMiLCJpZCI6NDQ1MSwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MDg4NTM2Mn0.7OzWWlmUmJv_EJo0RFpuiL2G_KLgZBENAAXOgU1O1qM';
+
+    var viewer = new Cesium.Viewer('cesiumContainer', {
+      //需要进行可视化的数据源的集合
+      animation: false, //是否显示动画控件
+      shouldAnimate: true,
+      homeButton: false, //是否显示Home按钮
+      fullscreenButton: false, //是否显示全屏按钮
+      baseLayerPicker: false, //是否显示图层选择控件
+      geocoder: false, //是否显示地名查找控件
+      timeline: true, //是否显示时间线控件
+      sceneModePicker: false, //是否显示投影方式控件
+      navigationHelpButton: false, //是否显示帮助信息控件
+      infoBox: false, //是否显示点击要素之后显示的信息
+      requestRenderMode: true, //启用请求渲染模式
+      scene3DOnly: false, //每个几何实例将只能以3D渲染以节省GPU内存
+      sceneMode: 3 //初始场景模式 1 2D模式 2 2D循环模式 3 3D模式  Cesium.SceneMode
+      //fullscreenElement: document.body, //全屏时渲染的HTML元素 暂时没发现用处
+      // imageryProvider: new Cesium.WebMapTileServiceImageryProvider({
+      //   url: 'http://t0.tianditu.com/img_w/wmts?',
+      //   layer: 'img',
+      //   style: 'default',
+      //   format: 'tiles',
+      //   tileMatrixSetID: 'w',
+      //   credit: new Cesium.Credit('天地图全球影像服务'),
+
+      // })
+    })
+
+    var redLine = viewer.entities.add({
+      polyline: {
+        // This callback updates positions each frame.
+        positions: Cesium.Cartesian3.fromDegreesArrayHeights([
+          114.33319866657257,
+          30.587336774956887,
+          200,
+          114.34319866657257,
+          30.587336774956887,
+          200,
+          114.35319866657257,
+          30.597336774956887,
+          200,
+          114.36319866657257,
+          30.567336774956887,
+          200
+        ]),
+        width: 5,
+        material: Cesium.Color.RED
+      }
+    })
+
+    let data = []
+    data[0] = [{
+        longitude: 114.33319866657257,
+        dimension: 30.587336774956887,
+        height: 200,
+        time: 0
+      },
+      {
+        longitude: 114.34319866657257,
+        dimension: 30.587336774956887,
+        height: 200,
+        time: 100
+      },
+      {
+        longitude: 114.35319866657257,
+        dimension: 30.597336774956887,
+        height: 200,
+        time: 200
+      },
+      {
+        longitude: 114.36319866657257,
+        dimension: 30.567336774956887,
+        height: 200,
+        time: 360
+      },
+      // {
+      //   longitude: 106.549265,
+      //   dimension: 29.559967,
+      //   height: 0,
+      //   time: 360
+      // }
+    ]
+
+    let start = Cesium.JulianDate.fromDate(new Date(2017, 7, 11))
+    // 结束时间
+    let stop = Cesium.JulianDate.addSeconds(
+      start,
+      360,
+      new Cesium.JulianDate()
+    )
+
+    // 设置始时钟始时间
+    viewer.clock.startTime = start.clone()
+    // 设置时钟当前时间
+    viewer.clock.currentTime = start.clone()
+    // 设置始终停止时间
+    viewer.clock.stopTime = stop.clone()
+    // 时间速率，数字越大时间过的越快
+    viewer.clock.multiplier = 10
+    // 时间轴
+    viewer.timeline.zoomTo(start, stop)
+    // debugger
+    // 循环执行,即为2，到达终止时间，重新从起点时间开始
+    viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP
+
+    // viewer.camera.flyTo({
+    //     destination:Cesium.Cartesian3.fromDegrees(116.405419,32.073514,20000)
+    // })
+    for (let j = 0; j < data.length; j++) {
+      let property = computeFlight(data[j])
+      //console.log(property)
+      // 添加模型
+      let planeModel = viewer.entities.add({
+        // 和时间轴关联
+        availability: new Cesium.TimeIntervalCollection([
+          new Cesium.TimeInterval({
+            start: start,
+            stop: stop
+          })
+        ]),
+        position: property,
+        // 根据所提供的速度计算模型的朝向
+        orientation: new Cesium.VelocityOrientationProperty(property),
+        // 模型数据
+        point: {
+          color: new Cesium.Color.fromCssColorString('#FFFF00').withAlpha(
+            0.2
+          ),
+          pixelSize: 10
+        }
+      })
+      viewer.trackedEntity = planeModel
+
+      var matrix3Scratch = new Cesium.Matrix3();
+
+
+
+      var scratch = new Cesium.Matrix4();
+      var renderListener = function (e) {
+        var time = viewer.clock.currentTime.secondsOfDay - viewer.clock.startTime.secondsOfDay;
+        //viewer.camera.positionCartographic.height = 2000 + $this.limitCamera(f_property);
+        // if ($this.flightEntity && $this.isFollowModel) {
+        getModelMatrix(planeModel, viewer.clock.currentTime, scratch);
+
+        var transformX = 50; //距离运动点的距离（后方） 
+        var transformZ = 10; //距离运动点的高度（上方）
+        viewer.scene.camera.lookAtTransform(scratch, new Cesium.Cartesian3(-transformX, 0, transformZ))
+        // }
+      }
+      viewer.scene.preRender.addEventListener(renderListener)
+    }
+
+    function getModelMatrix(entity, time, result) {
+      var position = Cesium.Property.getValueOrUndefined(entity.position, time, new Cesium.Cartesian3());
+      if (!Cesium.defined(position)) {
+        return undefined;
+      }
+      var orientation = Cesium.Property.getValueOrUndefined(entity.orientation, time, new Cesium.Quaternion());
+      if (!Cesium.defined(orientation)) {
+        result = Cesium.Transforms.eastNorthUpToFixedFrame(position, undefined, result);
+      } else {
+        result = Cesium.Matrix4.fromRotationTranslation(Cesium.Matrix3.fromQuaternion(orientation, matrix3Scratch),
+          position, result);
+      }
+      return result;
+    }
+    /**
+     * 计算飞行
+     * @param source 数据坐标
+     * @returns {SampledPositionProperty|*}
+     */
+    function computeFlight(source) {
+      // 取样位置 相当于一个集合
+      let property = new Cesium.SampledPositionProperty()
+      for (let i = 0; i < source.length; i++) {
+        let time = Cesium.JulianDate.addSeconds(
+          start,
+          source[i].time,
+          new Cesium.JulianDate()
+        )
+        let position = Cesium.Cartesian3.fromDegrees(
+          source[i].longitude,
+          source[i].dimension,
+          source[i].height
+        )
+        // 添加位置，和时间对应
+        property.addSample(time, position)
+      }
+      return property
+    }
+
+    // viewer.clock.onTick.addEventListener(function () {
+    //   if (viewer.camera.pitch > -8) {
+    //     //角度可以定义，正数是朝上看，负数是朝下看
+    //     viewer.scene.screenSpaceCameraController.enableTilt = false //设置false为不允许相机倾斜
+    //   }
+    // })
+  </script>
+</body>
+
+</html>

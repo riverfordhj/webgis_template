@@ -14,7 +14,7 @@
     "cesium": "^1.52.0",
     "cesium-navigation-es6": "^1.0.7",
     "echarts": "^4.1.0",
-    "element-ui": "^2.4.11",
+    "element-ui": "^2.11.1",
     "esri-loader": "^2.6.0",
     "file-saver": "^2.0.2",
     "geojson": "^0.5.0",

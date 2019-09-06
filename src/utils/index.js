@@ -76,11 +76,11 @@ export function param2Obj(url) {
   }
   return JSON.parse(
     '{"' +
-    decodeURIComponent(search)
-    .replace(/"/g, '\\"')
-    .replace(/&/g, '","')
-    .replace(/=/g, '":"') +
-    '"}'
+      decodeURIComponent(search)
+        .replace(/"/g, '\\"')
+        .replace(/&/g, '","')
+        .replace(/=/g, '":"') +
+      '"}'
   )
 }
 
@@ -95,7 +95,7 @@ export function getTime(type) {
 export function debounce(func, wait, immediate) {
   let timeout, args, context, timestamp, result
 
-  const later = function () {
+  const later = function() {
     // 据上一次触发时间间隔
     const last = +new Date() - timestamp
 
@@ -112,7 +112,7 @@ export function debounce(func, wait, immediate) {
     }
   }
 
-  return function (...args) {
+  return function(...args) {
     context = this
     timestamp = +new Date()
     const callNow = immediate && !timeout
@@ -128,11 +128,34 @@ export function debounce(func, wait, immediate) {
 }
 
 export function throttle(fn, wait = 3000) {
-  let timer;
-  return function (...args) {
-    if (timer == null) { // undefined == null // true undefined === null //false 这里不要写成 严格相等 不然永远执行不进去
-      timer = setTimeout(() => timer = null, wait)
-      return fn.apply(this, args);
+  let timer
+  return function(...args) {
+    if (timer == null) {
+      // undefined == null // true undefined === null //false 这里不要写成 严格相等 不然永远执行不进去
+      timer = setTimeout(() => (timer = null), wait)
+      return fn.apply(this, args)
     }
   }
+}
+
+/**
+ * This is just a simple version of deep copy
+ * Has a lot of edge cases bug
+ * If you want to use a perfect deep copy, use lodash's _.cloneDeep
+ * @param {Object} source
+ * @returns {Object}
+ */
+export function deepClone(source) {
+  if (!source && typeof source !== 'object') {
+    throw new Error('error arguments', 'deepClone')
+  }
+  const targetObj = source.constructor === Array ? [] : {}
+  Object.keys(source).forEach(keys => {
+    if (source[keys] && typeof source[keys] === 'object') {
+      targetObj[keys] = deepClone(source[keys])
+    } else {
+      targetObj[keys] = source[keys]
+    }
+  })
+  return targetObj
 }

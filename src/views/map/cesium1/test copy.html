@@ -1,0 +1,730 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <script src="https://cesiumjs.org/releases/1.56.1/Build/Cesium/Cesium.js"></script>
+    <link
+      href="https://cesiumjs.org/releases/1.56.1/Build/Cesium/Widgets/widgets.css"
+      rel="stylesheet"
+    />
+    <style>
+      html,
+      body,
+      cesiumContainer {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      .cesium-widget-credits {
+        display: none !important;
+        visibility: hidden !important;
+      }
+
+      .footer {
+        left: 0px;
+        right: 0px;
+        bottom: 0px;
+        position: absolute;
+        z-index: 991;
+        padding: 3px 10px;
+        font-size: 13px;
+        color: #e9e9e9;
+        text-shadow: 2px 2px 2px #000;
+        background-color: rgba(0, 0, 0, 0.4);
+      }
+
+      .footerItem {
+        float: right;
+        min-width: 80px;
+        margin-right: 20px;
+        font-size: 13px;
+        color: #e9e9e9;
+        text-shadow: 2px 2px 2px #000;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="cesiumContainer"></div>
+    <!-- <button type="button" class="btn btn-info" id="moni" style="position:absolute;top:20px;" onclick="SetMode('drawPloy')">面积</button>
+  <button type="button" class="btn btn-info" style="position:absolute;top:20px;left: 95px;" onclick="SetMode('drawLine')">测量</button>
+  <button type="button" class="btn btn-info" style="position:absolute;top:20px;left: 185px;" onclick="clearDrawingBoard()">清除</button> -->
+    <!-- <button
+      type="button"
+      class="btn btn-info"
+      style="position:absolute;top:20px;left: 185px;"
+      onclick="testt()"
+    >
+      test
+    </button> -->
+    <div class="footer">
+      <div class="footerItem" id="heightDiv">高度：</div>
+      <!-- <div class="footerItem" id="altitudeDiv">海拔：</div> -->
+      <div class="footerItem" id="latitudeDiv">纬度：</div>
+      <div class="footerItem" id="longitudeDiv">经度：</div>
+    </div>
+    <script>
+      Cesium.Ion.defaultAccessToken =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5MjMyYjZiMC1lZmY1LTQzNmEtODg1NS01NmQzMmE2NWY2ZjMiLCJpZCI6NDQ1MSwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MDg4NTM2Mn0.7OzWWlmUmJv_EJo0RFpuiL2G_KLgZBENAAXOgU1O1qM'
+
+      // var viewer = new Cesium.Viewer('cesiumContainer', {
+      //   geocoder: false, //搜索
+      //   homeButton: false, //主页 地球回正
+      //   sceneModePicker: false, //地球平铺 网格  3d/2d选择器
+      //   baseLayerPicker: true,
+      //   animation: false, //是否创建动画小器件，左下角仪表
+      //   selectionIndicator: false,
+      //   fullscreenButton: false,
+      //   // infoBox: true,
+      //   navigationHelpButton: false, //是否显示右上角的帮助按钮
+      //   timeline: false,
+      //   // infoBox: false
+      //   // baseLayerPicker: true //图层选择器
+      //   imageryProvider: new Cesium.WebMapTileServiceImageryProvider({
+      //     // http://t0.tianditu.gov.cn/vec_w/wmts?tk=d4747908a3f86c33dcfa0d02d74106a6?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILECOL=${col}&TILEROW=${row}&TILEMATRIX=${level}
+      //     url: "http://t0.tianditu.com/vec_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=vec&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default&format=tiles&tk=d4747908a3f86c33dcfa0d02d74106a6",
+      //     layer: "tdtVecBasicLayer",
+      //     style: "default",
+      //     format: "image/jpeg",
+      //     tileMatrixSetID: "GoogleMapsCompatible",
+      //     show: false
+      //   })
+      // });
+
+      // viewer.imageryLayers.addImageryProvider(
+      //   new Cesium.WebMapTileServiceImageryProvider({
+      //     url: 'http://t0.tianditu.com/cva_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=cva&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default.jpg&tk=d4747908a3f86c33dcfa0d02d74106a6',
+      //     layer: 'tdtAnnoLayer',
+      //     style: 'default',
+      //     format: 'image/jpeg',
+      //     tileMatrixSetID: 'GoogleMapsCompatible',
+      //     show: true,
+      //     maximumLevel: 18
+      //   })
+      // )
+
+      // // Load Cesium World Terrain
+      // viewer.terrainProvider = Cesium.createWorldTerrain({
+      //   requestWaterMask: true, // required for water effects
+      //   requestVertexNormals: true // required for terrain lighting
+      // });
+      // // Enable depth testing so things behind the terrain disappear.
+      // viewer.scene.globe.depthTestAgainstTerrain = true;
+
+      // // var tileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
+      // //   url: "http://202.114.148.160/pointCloudTo3dtiles/tileset.json",
+      // // }))
+      // // debugger
+
+      // // tileset.readyPromise.then(function () {
+      // //   tileset.readyPromise.then(function () {
+      // //   var longitude = 102.67706944444444;
+      // //   var latitude = 24.156576111111112;
+      // //   var height = 2675;
+      // //   var heading = 0;
+      // //   var position = Cesium.Cartesian3.fromDegrees(longitude, latitude, height);
+      // //   var mat = Cesium.Transforms.eastNorthUpToFixedFrame(position);
+      // //   var rotationX = Cesium.Matrix4.fromRotationTranslation(Cesium.Matrix3.fromRotationZ(Cesium.Math.toRadians(heading)));
+      // //   Cesium.Matrix4.multiply(mat, rotationX, mat);
+      // //   tileset._root.transform = mat;
+      // // })
+      // //   viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0.5, -0.2, tileset.boundingSphere.radius * 4.0));
+      // // });
+      // // var promise=Cesium.GeoJsonDataSource.load('居民地及设施点.json',{clampToGround: true});
+      // // function test() {
+      // //   var promise = Cesium.GeoJsonDataSource.load('http://202.114.148.160/ynjson/%E7%AE%A1%E7%BA%BF%E7%82%B9.json', {
+      // //     clampToGround: true
+      // //   });
+      // //   promise.then(function (dataSource) {
+      // //     var neighborhoodEntities = dataSource.entities.values;
+      // //     dataSource.color = Cesium.Color.fromRandom({
+      // //       alpha: 0.8
+      // //     })
+      // //     var color = Cesium.Color.fromRandom({
+      // //       alpha: 0.4
+      // //     })
+      // //     for (var i = 0; i < neighborhoodEntities.length; i++) {
+      // //       var entity = neighborhoodEntities[i];
+
+      // //       if (Cesium.defined(entity.polygon)) {
+
+      // //       }
+      // //       if (Cesium.defined(entity.polyline)) {
+      // //         entity.polyline.material = color
+      // //       }
+      // //       if (Cesium.defined(entity.point)) {}
+      // //     }
+      // //     viewer.dataSources.add(dataSource);
+      // //   })
+      // //   viewer.flyTo(promise);
+      // // }
+
+      // // test();
+
+      // // function testt() {
+      // //   viewer.dataSources.removeAll(true);
+      // //   test()
+      // // }
+
+      // // function loadJsonLayer(viewer, jsondata) {
+      // //   // debugger
+      // //   var geojsonOptions = {
+      // //     clampToGround: true,
+      // //     fill: Cesium.Color.RED
+      // //   };
+
+      // //   var dataPromise = Cesium.GeoJsonDataSource.load(jsondata, geojsonOptions);
+
+      // //   dataPromise.then(function (dataSource) {
+      // //     viewer.dataSources.add(dataSource);
+      // //     var neighborhoodEntities = dataSource.entities.values;
+
+      // //     var color = Cesium.Color.fromRandom({
+      // //       alpha: 0.9
+      // //     });
+      // //     for (var i = 0; i < neighborhoodEntities.length; i++) {
+      // //       var entity = neighborhoodEntities[i];
+
+      // //       if (Cesium.defined(entity.polygon)) {
+      // //         entity.polygon.material = Cesium.Color.fromRandom({
+      // //           alpha: 0.6
+      // //         });
+      // //       }
+      // //       if (Cesium.defined(entity.polyline)) {
+      // //         entity.polyline.material = color
+      // //       }
+      // //       if (Cesium.defined(entity.point)) {
+      // //         entity.point.material = color
+      // //       }
+      // //       dataSource.show = true
+      // //       // callback(dataSource)
+      // //       // debugger
+      // //       // console.log(viewer)
+      // //     }
+      // //   });
+      // //   return dataPromise;
+      // // }
+
+      // // loadJsonLayer(viewer,
+      // //   "http://202.114.148.160/ynjson/%E5%B1%85%E6%B0%91%E5%9C%B0%E5%8F%8A%E8%AE%BE%E6%96%BD%E7%82%B9.json");
+      // // loadJsonLayer(viewer, "http://202.114.148.160/ynjson/%E6%A4%8D%E8%A2%AB%E4%B8%8E%E5%9C%9F%E8%B4%A8%E7%82%B9.json");
+      // // loadJsonLayer(viewer, "http://202.114.148.160/ynjson/%E6%B0%B4%E7%B3%BB%E7%82%B9.json");
+      // // loadJsonLayer(viewer, "http://202.114.148.160/ynjson/%E7%AE%A1%E7%BA%BF%E7%82%B9.json");
+
+      // //
+      // // var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+
+      // // var previousPickedEntity = undefined;
+      // // handler.setInputAction(function (movement) {
+      // //   var pickedPrimitive = viewer.scene.pick(movement.position);
+      // //   var pickedEntity = (Cesium.defined(pickedPrimitive)) ? pickedPrimitive.id : undefined;
+      // //   // Unhighlight the previously picked entity
+      // //   if (Cesium.defined(previousPickedEntity)) {
+      // //       previousPickedEntity.billboard.scale = 1.0;
+      // //       previousPickedEntity.billboard.color = Cesium.Color.WHITE;
+      // //   }
+      // //   // Highlight the currently picked entity
+      // //   if (Cesium.defined(pickedEntity) && Cesium.defined(pickedEntity.billboard)) {
+      // //       // debugger
+      // //       console.log(pickedEntity.properties)
+      // //       pickedEntity.billboard.scale = 2.0;
+      // //       pickedEntity.billboard.color = Cesium.Color.ORANGERED;
+      // //       previousPickedEntity = pickedEntity;
+      // //   }
+      // // },Cesium.ScreenSpaceEventType.LEFT_CLICK)
+
+      // var particleSystem = scene.primitives.add(new Cesium.ParticleSystem({
+      //   image: '../../../../Apps/SampleData/smoke.png',
+
+      //   startColor: Cesium.Color.LIGHTSEAGREEN.withAlpha(0.7),
+      //   endColor: Cesium.Color.WHITE.withAlpha(0.0),
+
+      //   startScale: viewModel.startScale,
+      //   endScale: viewModel.endScale,
+
+      //   minimumParticleLife: viewModel.minimumParticleLife,
+      //   maximumParticleLife: viewModel.maximumParticleLife,
+
+      //   minimumSpeed: viewModel.minimumSpeed,
+      //   maximumSpeed: viewModel.maximumSpeed,
+
+      //   imageSize: new Cesium.Cartesian2(viewModel.particleSize, viewModel.particleSize),
+
+      //   emissionRate: viewModel.emissionRate,
+
+      //   bursts: [
+      //     // these burst will occasionally sync to create a multicolored effect
+      //     new Cesium.ParticleBurst({
+      //       time: 5.0,
+      //       minimum: 10,
+      //       maximum: 100
+      //     }),
+      //     new Cesium.ParticleBurst({
+      //       time: 10.0,
+      //       minimum: 50,
+      //       maximum: 100
+      //     }),
+      //     new Cesium.ParticleBurst({
+      //       time: 15.0,
+      //       minimum: 200,
+      //       maximum: 300
+      //     })
+      //   ],
+
+      //   lifetime: 16.0,
+
+      //   emitter: new Cesium.CircleEmitter(2.0),
+
+      //   emitterModelMatrix: computeEmitterModelMatrix(),
+
+      //   updateCallback: applyGravity
+      // }));
+      // var viewer = new Cesium.Viewer('cesiumContainer');
+
+      var viewer = new Cesium.Viewer('cesiumContainer', {
+        //需要进行可视化的数据源的集合
+        animation: false, //是否显示动画控件
+        shouldAnimate: true,
+        homeButton: false, //是否显示Home按钮
+        fullscreenButton: false, //是否显示全屏按钮
+        baseLayerPicker: false, //是否显示图层选择控件
+        geocoder: false, //是否显示地名查找控件
+        timeline: true, //是否显示时间线控件
+        sceneModePicker: false, //是否显示投影方式控件
+        navigationHelpButton: false, //是否显示帮助信息控件
+        infoBox: false, //是否显示点击要素之后显示的信息
+        requestRenderMode: true, //启用请求渲染模式
+        scene3DOnly: false, //每个几何实例将只能以3D渲染以节省GPU内存
+        sceneMode: 3 //初始场景模式 1 2D模式 2 2D循环模式 3 3D模式  Cesium.SceneMode
+        //fullscreenElement: document.body, //全屏时渲染的HTML元素 暂时没发现用处
+        // imageryProvider: new Cesium.WebMapTileServiceImageryProvider({
+        //   url: 'http://t0.tianditu.com/img_w/wmts?',
+        //   layer: 'img',
+        //   style: 'default',
+        //   format: 'tiles',
+        //   tileMatrixSetID: 'w',
+        //   credit: new Cesium.Credit('天地图全球影像服务'),
+
+        // })
+      })
+      // var layers = viewer.imageryLayers
+      // viewer._cesiumWidget._creditContainer.style.display = 'none'
+      //全球影像中文注记服务
+      // viewer.imageryLayers.addImageryProvider(new Cesium.WebMapTileServiceImageryProvider({
+      //   url: "http://t0.tianditu.com/cia_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=cia&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default.jpg",
+      //   layer: "tdtAnnoLayer",
+      //   style: "default",
+      //   format: "image/jpeg",
+      //   tileMatrixSetID: "GoogleMapsCompatible",
+      //   maximumLevel: 13,
+      //   minimumLevel: 1,
+      //   show: false
+      // }));
+
+      var position = Cesium.Cartesian3.fromDegrees(
+        114.33319866657257,
+        30.577336774956887,
+        100
+      )
+
+      // viewer.scene.camera.flyTo({
+      //   destination: Cesium.Cartesian3.fromDegrees(
+      //     112.315216,
+      //     39.5125612,
+      //     10000
+      //   ), //定位坐标点，建议使用谷歌地球坐标位置无偏差
+      //   duration: 1 //定位的时间间隔
+      // })
+
+      // setTimeout(function() {
+      //   flyExtent()
+      // }, 1000)
+
+      // function flyExtent() {
+      //   // 相机看点的角度，如果大于0那么则是从地底往上看，所以要为负值，这里取-30度
+      //   var pitch = Cesium.Math.toRadians(0)
+      //   // 给定飞行一周所需时间，比如10s, 那么每秒转动度数
+      //   var angle = 360 / 5
+      //   // 给定相机距离点多少距离飞行，这里取值为5000m
+      //   var distance = 15000
+      //   var startTime = Cesium.JulianDate.fromDate(new Date())
+
+      //   var stopTime = Cesium.JulianDate.addSeconds(
+      //     startTime,
+      //     5,
+      //     new Cesium.JulianDate()
+      //   )
+
+      //   viewer.clock.startTime = startTime.clone() // 开始时间
+      //   viewer.clock.stopTime = stopTime.clone() // 结速时间
+      //   viewer.clock.currentTime = startTime.clone() // 当前时间
+      //   viewer.clock.clockRange = Cesium.ClockRange.CLAMPED // 行为方式
+      //   viewer.clock.clockStep = Cesium.ClockStep.SYSTEM_CLOCK // 时钟设置为当前系统时间; 忽略所有其他设置。
+      //   // 相机的当前heading
+      //   var initialHeading = viewer.camera.heading
+      //   viewer.scene.camera.setView({
+      //     destination: position, // 点的坐标
+      //     orientation: {
+      //       heading: initialHeading,
+      //       pitch: pitch
+      //     }
+      //   })
+      //   var Exection = function TimeExecution() {
+      //     // 当前已经过去的时间，单位s
+      //     var delTime = Cesium.JulianDate.secondsDifference(
+      //       viewer.clock.currentTime,
+      //       viewer.clock.startTime
+      //     )
+      //     var heading = initialHeading
+      //     // var heading = Cesium.Math.toRadians(delTime * angle) + initialHeading
+
+      //     viewer.scene.camera.moveForward(
+      //       viewer.scene.globe.ellipsoid.cartesianToCartographic(
+      //         viewer.scene.camera.position
+      //       ).height / 100
+      //     )
+      //     console.log(viewer.scene.camera)
+      //     // if (
+      //     //   Cesium.JulianDate.compare(
+      //     //     viewer.clock.currentTime,
+      //     //     viewer.clock.stopTime
+      //     //   ) >= 0
+      //     // ) {
+      //     //   viewer.clock.onTick.removeEventListener(Exection)
+      //     // }
+      //   }
+      //   viewer.clock.onTick.addEventListener(Exection)
+      // }
+
+      // var redLine = viewer.entities.add({
+      //   polyline: {
+      //     // This callback updates positions each frame.
+      //     positions: Cesium.Cartesian3.fromDegreesArrayHeights([
+      //       114.33319866657257,
+      //       30.577336774956887,
+      //       100,
+      //       114.33319866657257,
+      //       30.587336774956887,
+      //       100,
+      //       114.33419866657257,
+      //       30.587336774956887,
+      //       100
+      //     ]),
+      //     width: 5,
+      //     material: Cesium.Color.RED
+      //   }
+      // })
+
+      // viewer.scene.globe.enableLighting = true
+      let data = []
+      data[0] = [
+        {
+          longitude: 114.33319866657257,
+          dimension: 30.587336774956887,
+          height: 200,
+          time: 0
+        },
+        {
+          longitude: 114.34319866657257,
+          dimension: 30.587336774956887,
+          height: 200,
+          time: 100
+        },
+        {
+          longitude: 114.35319866657257,
+          dimension: 30.586336774956887,
+          height: 200,
+          time: 200
+        },
+        {
+          longitude: 114.35319866657257,
+          dimension: 30.577336774956887,
+          height: 200,
+          time: 360
+        },
+        { longitude: 106.549265, dimension: 29.559967, height: 0, time: 360 }
+      ]
+      // data[1] = [
+      //   { longitude: 116.405419, dimension: 39.918034, height: 0, time: 0 },
+      //   { longitude: 117.034586, dimension: 39.881202, height: 0, time: 40 },
+      //   {
+      //     longitude: 116.340088,
+      //     dimension: 38.842224,
+      //     height: 70000,
+      //     time: 100
+      //   },
+      //   {
+      //     longitude: 113.489176,
+      //     dimension: 23.464017,
+      //     height: 70000,
+      //     time: 280
+      //   },
+      //   { longitude: 113.262084, dimension: 23.13901, height: 0, time: 360 }
+      // ]
+      // data[2] = [
+      //   { longitude: 118.838979, dimension: 32.073514, height: 0, time: 0 },
+      //   { longitude: 118.438838, dimension: 32.03777, height: 0, time: 40 },
+      //   {
+      //     longitude: 117.802406,
+      //     dimension: 31.91231,
+      //     height: 70000,
+      //     time: 100
+      //   },
+      //   {
+      //     longitude: 104.043645,
+      //     dimension: 35.993845,
+      //     height: 70000,
+      //     time: 280
+      //   },
+      //   { longitude: 101.807224, dimension: 36.660972, height: 0, time: 360 }
+      // ]
+      // 起始时间
+      let start = Cesium.JulianDate.fromDate(new Date(2017, 7, 11))
+      // 结束时间
+      let stop = Cesium.JulianDate.addSeconds(
+        start,
+        360,
+        new Cesium.JulianDate()
+      )
+
+      // 设置始时钟始时间
+      viewer.clock.startTime = start.clone()
+      // 设置时钟当前时间
+      viewer.clock.currentTime = start.clone()
+      // 设置始终停止时间
+      viewer.clock.stopTime = stop.clone()
+      // 时间速率，数字越大时间过的越快
+      viewer.clock.multiplier = 10
+      // 时间轴
+      viewer.timeline.zoomTo(start, stop)
+      // debugger
+      // 循环执行,即为2，到达终止时间，重新从起点时间开始
+      viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP
+
+      // viewer.camera.flyTo({
+      //     destination:Cesium.Cartesian3.fromDegrees(116.405419,32.073514,20000)
+      // })
+      for (let j = 0; j < data.length; j++) {
+        let property = computeFlight(data[j])
+        //console.log(property)
+        // 添加模型
+        let planeModel = viewer.entities.add({
+          // 和时间轴关联
+          availability: new Cesium.TimeIntervalCollection([
+            new Cesium.TimeInterval({
+              start: start,
+              stop: stop
+            })
+          ]),
+          position: property,
+          // 根据所提供的速度计算模型的朝向
+          orientation: new Cesium.VelocityOrientationProperty(property),
+          // 模型数据
+          point: {
+            color: new Cesium.Color.fromCssColorString('#FFFF00').withAlpha(
+              0.2
+            ),
+            pixelSize: 1
+          }
+        })
+        viewer.trackedEntity = planeModel
+      }
+
+      /**
+       * 计算飞行
+       * @param source 数据坐标
+       * @returns {SampledPositionProperty|*}
+       */
+      function computeFlight(source) {
+        // 取样位置 相当于一个集合
+        let property = new Cesium.SampledPositionProperty()
+        for (let i = 0; i < source.length; i++) {
+          let time = Cesium.JulianDate.addSeconds(
+            start,
+            source[i].time,
+            new Cesium.JulianDate()
+          )
+          let position = Cesium.Cartesian3.fromDegrees(
+            source[i].longitude,
+            source[i].dimension,
+            source[i].height
+          )
+          // 添加位置，和时间对应
+          property.addSample(time, position)
+        }
+        return property
+      }
+
+      viewer.clock.onTick.addEventListener(function() {
+        if (viewer.camera.pitch > -8) {
+          //角度可以定义，正数是朝上看，负数是朝下看
+          viewer.scene.screenSpaceCameraController.enableTilt = false //设置false为不允许相机倾斜
+        }
+      })
+
+      // var scene = viewer.scene;
+      // var canvas = viewer.canvas;
+
+      // viewer.clock.onTick.addEventListener(function (clock) {
+      //   // setTimeout(() => {
+      //   // debugger
+      //   viewer.camera.moveForward(10);
+      //   // viewer.camera.rotateUp(0.01 * 0.05);
+      //   // }, 1000)
+      // })
+
+      // viewer.camera.direction = Cesium.Cartesian3.fromDegrees(114.33319866657257, 30.577336774956887, 100.0);
+      // console.log(camera)
+      // // var camera = new Cesium.Camera(scene);
+      // camera.position = new Cesium.Cartesian3();
+      // camera.direction = Cesium.Cartesian3.fromDegrees(114.33319866657257, 30.577336774956887, 100.0);
+      // camera.up = Cesium.Cartesian3.clone(Cesium.Cartesian3.UNIT_Y);
+      // camera.frustum.fov = Cesium.Math.PI_OVER_THREE;
+      // camera.frustum.near = 1.0;
+      // camera.frustum.far = 2.0;
+      // viewer.camera = camera
+      // viewer.camera.flyTo({
+      //   destination: Cesium.Cartesian3.fromDegrees(114.33319866657257, 30.577336774956887, 100.0)
+      // });
+      // setTimeout(() => {
+      //   // viewer.camera.direction = Cesium.Cartesian3.fromDegrees(114.33319866657257, 30.577336774956887, 100.0)
+      //   var center = Cesium.Cartesian3.fromDegrees(114.33319866657257,
+      //     30.587336774956887, 100);
+      //   var heading = Cesium.Math.toRadians(50.0);
+      //   var pitch = Cesium.Math.toRadians(-20.0);
+      //   var range = 5000.0;
+      //   viewer.camera.lookAt(center);
+
+      // }, 3000)
+      // viewer.camera.lookAt(Cesium.Cartesian3.fromDegrees(114.33319866657257,
+      //   30.587336774956887, 100), Cesium.Cartesian3.fromDegrees(114.33319866657257,
+      //   30.577336774956887, 100));
+      // console.log(viewer.camera)
+      // setTimeout(() => {
+      //   viewer.clock.onTick.addEventListener(function (clock) {
+      //     // setTimeout(() => {
+      //     // debugger
+      //     // viewer.camera.moveForward(10);
+      //     // viewer.camera.lookUp(0.01);
+      //     viewer.camera.lookRight(0.001);
+      //     console.log(viewer.camera)
+      //     // }, 1000)
+      //   })
+      // }, 3000)
+
+      // canvas.setAttribute('tabindex', '0'); // needed to put focus on the canvas
+      // canvas.onclick = function () {
+      //   canvas.focus();
+      // };
+      // var ellipsoid = scene.globe.ellipsoid;
+
+      // // disable the default event handlers
+      // scene.screenSpaceCameraController.enableRotate = false;
+      // scene.screenSpaceCameraController.enableTranslate = false;
+      // scene.screenSpaceCameraController.enableZoom = false;
+      // scene.screenSpaceCameraController.enableTilt = false;
+      // scene.screenSpaceCameraController.enableLook = false;
+
+      // var startMousePosition;
+      // var mousePosition;
+      // var flags = {
+      //   looking: false,
+      //   moveForward: false,
+      //   moveBackward: false,
+      //   moveUp: false,
+      //   moveDown: false,
+      //   moveLeft: false,
+      //   moveRight: false
+      // };
+
+      // var handler = new Cesium.ScreenSpaceEventHandler(canvas);
+
+      // handler.setInputAction(function (movement) {
+      //   flags.looking = true;
+      //   mousePosition = startMousePosition = Cesium.Cartesian3.clone(movement.position);
+      // }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
+
+      // handler.setInputAction(function (movement) {
+      //   mousePosition = movement.endPosition;
+      // }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+
+      // handler.setInputAction(function (position) {
+      //   flags.looking = false;
+      // }, Cesium.ScreenSpaceEventType.LEFT_UP);
+
+      // function getFlagForKeyCode(keyCode) {
+      //   switch (keyCode) {
+      //     case 'W'.charCodeAt(0):
+      //       return 'moveForward';
+      //     case 'S'.charCodeAt(0):
+      //       return 'moveBackward';
+      //     case 'Q'.charCodeAt(0):
+      //       return 'moveUp';
+      //     case 'E'.charCodeAt(0):
+      //       return 'moveDown';
+      //     case 'D'.charCodeAt(0):
+      //       return 'moveRight';
+      //     case 'A'.charCodeAt(0):
+      //       return 'moveLeft';
+      //     default:
+      //       return undefined;
+      //   }
+      // }
+
+      // document.addEventListener('keydown', function (e) {
+      //   var flagName = getFlagForKeyCode(e.keyCode);
+      //   if (typeof flagName !== 'undefined') {
+      //     flags[flagName] = true;
+      //   }
+      // }, false);
+
+      // document.addEventListener('keyup', function (e) {
+      //   var flagName = getFlagForKeyCode(e.keyCode);
+      //   if (typeof flagName !== 'undefined') {
+      //     flags[flagName] = false;
+      //   }
+      // }, false);
+
+      // viewer.clock.onTick.addEventListener(function (clock) {
+      //   var camera = viewer.camera;
+
+      //   if (flags.looking) {
+      //     var width = canvas.clientWidth;
+      //     var height = canvas.clientHeight;
+
+      //     // Coordinate (0.0, 0.0) will be where the mouse was clicked.
+      //     var x = (mousePosition.x - startMousePosition.x) / width;
+      //     var y = -(mousePosition.y - startMousePosition.y) / height;
+
+      //     var lookFactor = 0.05;
+      //     camera.lookRight(x * lookFactor);
+      //     camera.lookUp(y * lookFactor);
+      //   }
+
+      //   // Change movement speed based on the distance of the camera to the surface of the ellipsoid.
+      //   var cameraHeight = ellipsoid.cartesianToCartographic(camera.position).height;
+      //   var moveRate = cameraHeight / 100.0;
+
+      //   if (flags.moveForward) {
+      //     camera.moveForward(moveRate);
+      //   }
+      //   if (flags.moveBackward) {
+      //     camera.moveBackward(moveRate);
+      //   }
+      //   if (flags.moveUp) {
+      //     camera.moveUp(moveRate);
+      //   }
+      //   if (flags.moveDown) {
+      //     camera.moveDown(moveRate);
+      //   }
+      //   if (flags.moveLeft) {
+      //     camera.moveLeft(moveRate);
+      //   }
+      //   if (flags.moveRight) {
+      //     camera.moveRight(moveRate);
+      //   }
+      // });
+    </script>
+  </body>
+</html>

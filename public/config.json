@@ -1,4 +1,5 @@
 {
-  "base_url":"http://202.114.148.160/webapi_role/api",
-  "base_url1":"http://localhost:42449/api"
+  "base_url1": "http://202.114.148.160/webapi_role/api",
+  "base_url2": "http://localhost:42449/api",
+  "base_url": "http://172.16.7.55/YN_webapi/api"
 }

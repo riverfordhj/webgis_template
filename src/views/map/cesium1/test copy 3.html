@@ -1,0 +1,392 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <script src="https://cesiumjs.org/releases/1.56.1/Build/Cesium/Cesium.js"></script>
+    <link
+      href="https://cesiumjs.org/releases/1.56.1/Build/Cesium/Widgets/widgets.css"
+      rel="stylesheet"
+    />
+    <style>
+      html,
+      body,
+      cesiumContainer {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      .cesium-widget-credits {
+        display: none !important;
+        visibility: hidden !important;
+      }
+
+      .footer {
+        left: 0px;
+        right: 0px;
+        bottom: 0px;
+        position: absolute;
+        z-index: 991;
+        padding: 3px 10px;
+        font-size: 13px;
+        color: #e9e9e9;
+        text-shadow: 2px 2px 2px #000;
+        background-color: rgba(0, 0, 0, 0.4);
+      }
+
+      .footerItem {
+        float: right;
+        min-width: 80px;
+        margin-right: 20px;
+        font-size: 13px;
+        color: #e9e9e9;
+        text-shadow: 2px 2px 2px #000;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="cesiumContainer"></div>
+    <!-- <button type="button" class="btn btn-info" id="moni" style="position:absolute;top:20px;" onclick="SetMode('drawPloy')">面积</button>
+  <button type="button" class="btn btn-info" style="position:absolute;top:20px;left: 95px;" onclick="SetMode('drawLine')">测量</button>
+  <button type="button" class="btn btn-info" style="position:absolute;top:20px;left: 185px;" onclick="clearDrawingBoard()">清除</button> -->
+    <button
+      type="button"
+      class="btn btn-info"
+      style="position:absolute;top:20px;left: 45px;"
+      onclick="heading()"
+    >
+      heading
+    </button>
+    <button
+      type="button"
+      class="btn btn-info"
+      style="position:absolute;top:20px;left: 125px;"
+      onclick="pitch()"
+    >
+      pitch
+    </button>
+    <button
+      type="button"
+      class="btn btn-info"
+      style="position:absolute;top:20px;left: 185px;"
+      onclick="roll()"
+    >
+      roll
+    </button>
+    <div class="footer">
+      <div class="footerItem" id="heightDiv">高度：</div>
+      <!-- <div class="footerItem" id="altitudeDiv">海拔：</div> -->
+      <div class="footerItem" id="latitudeDiv">纬度：</div>
+      <div class="footerItem" id="longitudeDiv">经度：</div>
+    </div>
+    <script>
+      Cesium.Ion.defaultAccessToken =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5MjMyYjZiMC1lZmY1LTQzNmEtODg1NS01NmQzMmE2NWY2ZjMiLCJpZCI6NDQ1MSwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MDg4NTM2Mn0.7OzWWlmUmJv_EJo0RFpuiL2G_KLgZBENAAXOgU1O1qM'
+
+      var viewer = new Cesium.Viewer('cesiumContainer', {
+        //需要进行可视化的数据源的集合
+        animation: false, //是否显示动画控件
+        shouldAnimate: true,
+        homeButton: false, //是否显示Home按钮
+        fullscreenButton: false, //是否显示全屏按钮
+        baseLayerPicker: false, //是否显示图层选择控件
+        geocoder: false, //是否显示地名查找控件
+        timeline: true, //是否显示时间线控件
+        sceneModePicker: false, //是否显示投影方式控件
+        navigationHelpButton: false, //是否显示帮助信息控件
+        infoBox: false, //是否显示点击要素之后显示的信息
+        requestRenderMode: true, //启用请求渲染模式
+        scene3DOnly: false, //每个几何实例将只能以3D渲染以节省GPU内存
+        sceneMode: 3 //初始场景模式 1 2D模式 2 2D循环模式 3 3D模式  Cesium.SceneMode
+        //fullscreenElement: document.body, //全屏时渲染的HTML元素 暂时没发现用处
+        // imageryProvider: new Cesium.WebMapTileServiceImageryProvider({
+        //   url: 'http://t0.tianditu.com/img_w/wmts?',
+        //   layer: 'img',
+        //   style: 'default',
+        //   format: 'tiles',
+        //   tileMatrixSetID: 'w',
+        //   credit: new Cesium.Credit('天地图全球影像服务'),
+
+        // })
+      })
+
+      // viewer.scene.screenSpaceCameraController.enableRotate = false;
+      // viewer.scene.screenSpaceCameraController.enableTranslate = false;
+      // viewer.scene.screenSpaceCameraController.enableZoom = false;
+      // viewer.scene.screenSpaceCameraController.enableTilt = false;
+      // viewer.scene.screenSpaceCameraController.enableLook = false;
+
+      const EARTH_RADIUS = 6378.137
+      var redLine = viewer.entities.add({
+        polyline: {
+          // This callback updates positions each frame.
+          positions: Cesium.Cartesian3.fromDegreesArrayHeights([
+            114.33319866657257,
+            30.587336774956887,
+            200,
+            114.34319866657257,
+            30.597336774956887,
+            200
+            // 114.35319866657257,
+            // 30.597336774956887,
+            // 200,
+            // 114.36319866657257,
+            // 30.567336774956887,
+            // 200
+          ]),
+          width: 5,
+          material: Cesium.Color.RED
+        }
+      })
+      //获取当前摄像机参数
+      // viewer.camera.flyTo({
+      //   destination: Cesium.Cartesian3.fromDegrees(114.33319866657257, 30.577336774956887, 100.0)
+      // });
+
+      // viewer.camera.flyTo({
+      //   destination: Cesium.Cartesian3.fromDegrees(114.33319866657257, 30.587336774956887, 200.0)
+      // });
+
+      var point = Cesium.Cartesian3.fromDegrees(
+        114.33319866657257,
+        30.587336774956887,
+        200.0
+      )
+      var nextPoint = Cesium.Cartesian3.fromDegrees(
+        114.34319866657257,
+        30.597336774956887,
+        200.0
+      )
+      var angle = getAngle(
+        114.33319866657257,
+        30.587336774956887,
+        114.34319866657257,
+        30.597336774956887
+      )
+      // debugger
+      viewer.camera.setView({
+        destination: point,
+        orientation: {
+          heading: Cesium.Math.toRadians(90 - angle), //默认值
+          pitch: Cesium.Math.toRadians(0), // 默认值
+          roll: 0.0 //默认值
+        }
+        // orientation: {
+        //   direction: new Cesium.Cartesian3.fromDegrees(
+        //     114.34319866657257,
+        //     30.587336774956887,
+        //     200.0
+        //   ),
+        //   up: new Cesium.Cartesian3(0, 0, 1)
+        // }
+      })
+      // viewer.camera.move(nextPoint, 100)
+      console.log(viewer.camera)
+      let data = []
+      data[0] = [
+        {
+          longitude: 114.33319866657257,
+          dimension: 30.587336774956887,
+          height: 200,
+          time: 0
+        },
+        {
+          longitude: 114.34319866657257,
+          dimension: 30.587336774956887,
+          height: 200,
+          time: 100
+        },
+        {
+          longitude: 114.35319866657257,
+          dimension: 30.597336774956887,
+          height: 200,
+          time: 200
+        }
+        // {
+        //   longitude: 114.36319866657257,
+        //   dimension: 30.567336774956887,
+        //   height: 200,
+        //   time: 360
+        // }
+      ]
+
+      // var allStops = []
+      // data[0].map((obj, l) => {
+      //   // debugger
+      //   var result = Cesium.Cartesian3.fromDegrees(
+      //     obj.longitude,
+      //     obj.dimension,
+      //     obj.height
+      //   )
+      //   var Stop = {}
+      //   //参数传入站点变量
+      //   Stop.position_x = result.x
+      //   Stop.position_y = result.y
+      //   Stop.position_z = result.z
+      //   Stop.heading = viewer.scene.camera.heading
+      //   Stop.pitch = viewer.scene.camera.pitch
+      //   Stop.roll = viewer.scene.camera.roll
+      //   Stop.time = 10
+      //   allStops.push(Stop)
+      //   if (l != 0 && l < allStops.length) {
+      //     x = allStops[l].position_x - allStops[l - 1].position_x
+      //     y = allStops[l].position_y - allStops[l - 1].position_y
+      //     z = allStops[l].position_z - allStops[l - 1].position_z
+      //     // p = allStops[l].pitch - allStops[l - 1].pitch;
+      //     // h = allStops[l].heading - allStops[l - 1].heading;
+      //     p = 0
+      //     h = 0
+      //     // fly(x, y, z, h, p, l);
+      //   }
+
+      //   console.log(result)
+      // })
+
+      // var position = viewer.scene.camera.position
+      // var Stop = {}
+      // //参数传入站点变量
+      // Stop.position_x = position.x
+      // Stop.position_y = position.y
+      // Stop.position_z = position.z
+      // Stop.heading = viewer.scene.camera.heading
+      // Stop.pitch = viewer.scene.camera.pitch
+      // Stop.roll = viewer.scene.camera.roll
+      // Stop.time = 10
+
+      // //传入站点数组
+      // allStops.push(Stop)
+
+      // var l = allStops.length - 1
+      // if (l < allStops.length) {
+      //   x = allStops[l].position_x - allStops[l - 1].position_x
+      //   y = allStops[l].position_y - allStops[l - 1].position_y
+      //   z = allStops[l].position_z - allStops[l - 1].position_z
+      //   p = allStops[l].pitch - allStops[l - 1].pitch
+      //   h = allStops[l].heading - allStops[l - 1].heading
+      //   fly(x, y, z, h, p)
+      // }
+
+      function getDistance(lng2, lat2, lng1, lat1) {
+        var radLat1 = (lat1 * Math.PI) / 180.0 //角度1˚ = π / 180
+        var radLat2 = (lat2 * Math.PI) / 180.0 //角度1˚ = π / 180
+        var a = radLat1 - radLat2 //纬度之差
+        var b = (lng1 * Math.PI) / 180.0 - (lng2 * Math.PI) / 180.0 //经度之差
+        var dst =
+          2 *
+          Math.asin(
+            Math.sqrt(
+              Math.pow(Math.sin(a / 2), 2) +
+                Math.cos(radLat1) *
+                  Math.cos(radLat2) *
+                  Math.pow(Math.sin(b / 2), 2)
+            )
+          )
+        dst = dst * EARTH_RADIUS
+        dst = Math.round(dst * 10000) / 10000
+        return dst
+      }
+
+      function getAngle(lng2, lat2, lng1, lat1) {
+        var x = lat1 - lat2 //t d
+        var y = lng1 - lng2 //z y
+        var angle = -1
+        if (y == 0 && x > 0) angle = 0
+        if (y == 0 && x < 0) angle = 180
+        if (x == 0 && y > 0) angle = 90
+        if (x == 0 && y < 0) angle = 270
+        if (angle == -1) {
+          var dislat = getDistance(lat1, lng1, lat2, lng1)
+          var dislng = getDistance(lat1, lng1, lat1, lng2)
+          if (x > 0 && y > 0)
+            angle = (Math.atan2(dislng, dislat) / Math.PI) * 180
+          if (x < 0 && y > 0)
+            angle = (Math.atan2(dislat, dislng) / Math.PI) * 180 + 90
+          if (x < 0 && y < 0)
+            angle = (Math.atan2(dislng, dislat) / Math.PI) * 180 + 180
+          if (x > 0 && y < 0)
+            angle = (Math.atan2(dislat, dislng) / Math.PI) * 180 + 270
+        }
+        return angle
+      }
+
+      function fly(x, y, z, h, p, l) {
+        var ceshi = setInterval(function() {
+          //设置俯仰角
+          viewer.camera.setView({
+            orientation: {
+              heading: viewer.scene.camera.heading + h / 100,
+              pitch: viewer.scene.camera.pitch + p / 100
+              // heading: Cesium.Math.toRadians(0.0),
+              // pitch: Cesium.Math.toRadians(90),
+              // roll: 0.0
+            }
+          })
+          //move移动相机
+          var height = viewer.scene.globe.ellipsoid.cartesianToCartographic(
+            viewer.camera.position
+          ).height
+          // debugger
+          // viewer.camera.move(new Cesium.Cartesian3(x, y, z), 0.001);
+          // scene.camera.look(new Cesium.Cartesian3(x,y,z),0.01);
+          // b = b + 1;
+          // if (b == 100) {
+          //   l++;
+          //   stopfly(ceshi, l);
+          //   b = 0;
+          // }
+        }, allStops[l - 1].time)
+      }
+
+      function pitch() {
+        viewer.camera.setView({
+          orientation: {
+            // heading: viewer.scene.camera.heading + h / 100,
+            // pitch: viewer.scene.camera.pitch + p / 100,
+            heading: viewer.scene.camera.heading,
+            pitch: viewer.scene.camera.pitch + Cesium.Math.toRadians(0.1),
+            roll: viewer.scene.camera.roll
+          }
+        })
+        console.log(viewer.scene.camera.pitch)
+      }
+
+      function heading() {
+        viewer.camera.setView({
+          orientation: {
+            // heading: viewer.scene.camera.heading + h / 100,
+            pitch: viewer.scene.camera.pitch,
+            heading: viewer.scene.camera.heading + +Cesium.Math.toRadians(0.1),
+            // pitch: Cesium.Math.toRadians(90),
+            roll: viewer.scene.camera.roll
+          }
+        })
+        console.log(viewer.scene.camera.heading)
+      }
+
+      function roll() {
+        viewer.camera.setView({
+          orientation: {
+            // heading: viewer.scene.camera.heading + h / 100,
+            // pitch: viewer.scene.camera.pitch + p / 100,
+            heading: viewer.scene.camera.heading,
+            pitch: viewer.scene.camera.pitch,
+            roll: viewer.scene.camera.roll + Cesium.Math.toRadians(0.1)
+          }
+        })
+        console.log(viewer.scene.camera.roll)
+      }
+      // setInterval(function () {
+      //   viewer.camera.setView({
+      //     orientation: {
+      //       // heading: viewer.scene.camera.heading + h / 100,
+      //       // pitch: viewer.scene.camera.pitch + p / 100,
+      //       heading: viewer.scene.camera.heading,
+      //       pitch: viewer.scene.camera.pitch,
+      //       roll: viewer.scene.camera.roll + Cesium.Math.toRadians(0.1)
+      //     }
+      //   })
+      // }, 40)
+    </script>
+  </body>
+</html>

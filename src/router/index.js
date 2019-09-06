@@ -21,7 +21,8 @@ import Layout from '../views/layout/Layout'
     icon: 'svg-name'             the icon show in the sidebar,
   }
 **/
-export const constantRouterMap = [{
+export const constantRouterMap = [
+  {
     path: '/login',
     // component: () => import('@/views/login/index'),
     component: () => import('@/views/login/login_video'),
@@ -39,10 +40,12 @@ export const constantRouterMap = [{
     redirect: '/dashboard',
     name: 'Dashboard',
     hidden: true,
-    children: [{
-      path: 'dashboard',
-      component: () => import('@/views/dashboard/testDashboard/index')
-    }]
+    children: [
+      {
+        path: 'dashboard',
+        component: () => import('@/views/dashboard/testDashboard/index')
+      }
+    ]
   },
   {
     path: '/view/map',
@@ -53,7 +56,8 @@ export const constantRouterMap = [{
       title: '地图',
       icon: 'map'
     },
-    children: [{
+    children: [
+      {
         path: 'esri',
         name: 'esri',
         component: () => import('@/views/map/esri/index'),
@@ -63,11 +67,20 @@ export const constantRouterMap = [{
         }
       },
       {
-        "path": "cesium",
+        path: 'cesium',
         name: 'cesium',
-        component: () => import('@/views/map/cesium1/index'),
+        component: () => import('@/views/map/cesium2/index'),
         meta: {
           title: '三维',
+          icon: '3dmap'
+        }
+      },
+      {
+        path: 'model',
+        name: 'model',
+        component: () => import('@/views/map/modelMap/3dTiles_transform'),
+        meta: {
+          title: '模型校验',
           icon: '3dmap'
         }
       }
@@ -82,7 +95,8 @@ export const constantRouterMap = [{
       title: '数据目录',
       icon: 'list'
     },
-    children: [{
+    children: [
+      {
         path: 'baseData',
         name: 'baseData',
         component: () => import('@/views/table/baseData/index'),
@@ -101,7 +115,7 @@ export const constantRouterMap = [{
       //   }
       // },
       {
-        "path": "managerDataByDistrict",
+        path: 'managerDataByDistrict',
         name: 'managerDataByDistrict',
         component: () => import('@/views/table/managerDataByDistrict/index1'),
         meta: {
@@ -110,7 +124,7 @@ export const constantRouterMap = [{
         }
       },
       {
-        "path": "uploadProject",
+        path: 'uploadProject',
         name: 'uploadProject',
         component: () => import('@/views/table/uploaderExcel/index'),
         meta: {
@@ -129,15 +143,17 @@ export const constantRouterMap = [{
       title: '统计分析',
       icon: 'chart'
     },
-    children: [{
-      path: 'DataAnalysis',
-      name: 'DataAnalysis',
-      component: () => import('@/views/statistics/index'),
-      meta: {
-        title: '统计分析',
-        icon: 'chart'
+    children: [
+      {
+        path: 'DataAnalysis',
+        name: 'DataAnalysis',
+        component: () => import('@/views/statistics/index'),
+        meta: {
+          title: '统计分析',
+          icon: 'chart'
+        }
       }
-    }, ]
+    ]
   },
   {
     path: '/MetaManagement',
@@ -148,15 +164,17 @@ export const constantRouterMap = [{
       title: '元数据管理',
       icon: 'example'
     },
-    children: [{
-      path: 'MetaManagement',
-      name: 'MetaManagement',
-      component: () => import('@/views/blank/index'),
-      meta: {
-        title: '元数据管理',
-        icon: 'example'
+    children: [
+      {
+        path: 'MetaManagement',
+        name: 'MetaManagement',
+        component: () => import('@/views/blank/index'),
+        meta: {
+          title: '元数据管理',
+          icon: 'example'
+        }
       }
-    }, ]
+    ]
   },
   {
     path: '/SystemManagement',
@@ -167,17 +185,18 @@ export const constantRouterMap = [{
       title: '系统管理',
       icon: 'gear'
     },
-    children: [{
-      path: 'SystemManagement',
-      name: 'SystemManagement',
-      component: () => import('@/views/blank/index'),
-      meta: {
-        title: '系统管理',
-        icon: 'gear'
+    children: [
+      {
+        path: 'SystemManagement',
+        name: 'SystemManagement',
+        component: () => import('@/views/blank/index'),
+        meta: {
+          title: '系统管理',
+          icon: 'gear'
+        }
       }
-    }, ]
-  },
-
+    ]
+  }
 ]
 
 export default new Router({
@@ -188,50 +207,64 @@ export default new Router({
   routes: constantRouterMap
 })
 
-export const asyncRouterMap = [{
-  path: '/UserManagement',
-  component: Layout,
-  redirect: '/UserManagement/modifyPassword',
-  name: 'UserManagement',
-  alwaysShow: true,
-  meta: {
-    title: '用户管理',
-    icon: 'peoples',
-    // roles: ['admin'] 
+export const asyncRouterMap = [
+  {
+    path: '/UserManagement',
+    component: Layout,
+    redirect: '/UserManagement/modifyPassword',
+    name: 'UserManagement',
+    alwaysShow: true,
+    meta: {
+      title: '用户管理',
+      icon: 'peoples'
+      // roles: ['admin']
+    },
+    children: [
+      {
+        path: 'createUser',
+        name: 'createUser',
+        component: () => import('@/views/user/createUser'),
+        meta: {
+          title: '创建用户',
+          icon: 'create',
+          roles: ['admin']
+        }
+      },
+      {
+        path: 'modifyPassword',
+        name: 'modifyPassword',
+        component: () => import('@/views/user/changePwd'),
+        meta: {
+          title: '修改密码',
+          icon: 'modifyPsd'
+          // roles: []
+        }
+      },
+      {
+        path: 'role',
+        component: () => import('@/views/user/role'),
+        name: 'RolePermission',
+        meta: {
+          title: '权限分配',
+          icon: 'RolePermission',
+          roles: ['admin']
+        }
+      }
+      // {
+      //   path: 'findPassword',
+      //   name: 'findPassword',
+      //   component: () => import('@/views/user/findPwd'),
+      //   meta: {
+      //     title: '找回密码',
+      //     icon: 'modifyPsd',
+      //     // roles: []
+      //   }
+      // }
+    ]
   },
-  children: [{
-      path: 'createUser',
-      name: 'createUser',
-      component: () => import('@/views/user/createUser'),
-      meta: {
-        title: '创建用户',
-        icon: 'create',
-        roles: ['admin']
-      }
-    },
-    {
-      path: 'modifyPassword',
-      name: 'modifyPassword',
-      component: () => import('@/views/user/changePwd'),
-      meta: {
-        title: '修改密码',
-        icon: 'modifyPsd',
-        // roles: [] 
-      }
-    },
-    // {
-    //   path: 'findPassword',
-    //   name: 'findPassword',
-    //   component: () => import('@/views/user/findPwd'),
-    //   meta: { 
-    //     title: '找回密码', 
-    //     icon: 'modifyPsd',
-    //     // roles: [] 
-    //   }
-    // }
-  ]
-}, {
-  path: '*',
-  redirect: '/404',
-  hidden: true
-}]
+  {
+    path: '*',
+    redirect: '/404',
+    hidden: true
+  }
+]
