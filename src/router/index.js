@@ -147,7 +147,7 @@ export const constantRouterMap = [
       {
         path: 'DataAnalysis',
         name: 'DataAnalysis',
-        component: () => import('@/views/statistics/index'),
+        component: () => import('@/views/statistics/index1'),
         meta: {
           title: '统计分析',
           icon: 'chart'

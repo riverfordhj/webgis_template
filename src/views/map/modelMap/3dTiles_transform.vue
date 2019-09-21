@@ -5,32 +5,35 @@
     <div id="menu" class="backdrop">
       <div>
         <span class="demonstration">经纬度位置</span>
-        <el-input-number
-          v-model="fullLong"
-          :precision="16"
-          :step="1"
-          :min="-180"
-          :max="180"
-          size="small"
-          controls-position="right"
-        />
-        <el-input-number
-          v-model="fullLat"
-          :precision="16"
-          :step="1"
-          :min="-180"
-          :max="180"
-          size="small"
-          controls-position="right"
-        />
-        <el-input-number
-          v-model="fullHeight"
-          :precision="14"
-          :step="1"
-          size="small"
-          controls-position="right"
-        />
-        <el-button type="primary" icon="el-icon-place" size="small" round @click="changePosition">定位</el-button>
+        <div class="inputDiv">
+          <el-input-number
+            v-model="fullLong"
+            :precision="16"
+            :step="1"
+            :min="-180"
+            :max="180"
+            size="small"
+            controls-position="right"
+          />
+          <el-input-number
+            v-model="fullLat"
+            :precision="16"
+            :step="1"
+            :min="-180"
+            :max="180"
+            size="small"
+            controls-position="right"
+          />
+          <el-input-number
+            v-model="fullHeight"
+            :precision="14"
+            :step="1"
+            size="small"
+            controls-position="right"
+          />
+          <el-button type="primary" icon="el-icon-place" size="small" round @click="changePosition">定位</el-button>
+          <el-button type="primary" icon="el-icon-upload2" size="small" round @click="savePosition">保存位置</el-button>
+        </div>   
       </div>
 
       <span class="demonstration">高程(meters)</span>
@@ -111,14 +114,27 @@
         @input="changeScale"
       />
     </div>
+    <div id="selectedProjectMenu">
+      <el-select v-model="project" placeholder="请选择工程" @change="changedProject">
+        <el-option
+          v-for="item in projOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
+    </div>
     <div id="selectedMenu">
-      <el-select v-model="urlValue" placeholder="请选择" @change="change3dTilesModel">
+      <el-select v-model="urlValue" placeholder="请选择项目" @change="change3dTilesModel">
         <el-option
           v-for="item in options"
           :key="item.value"
           :label="item.label"
           :value="item.value"
-        />
+        >
+         <span style="float: left">{{ item.label }}</span>
+        <span style="float: right; color: #8492a6; font-size: 13px">{{ item.type }}</span>
+      </el-option>
       </el-select>
     </div>
   </div>
@@ -126,7 +142,9 @@
 
 <script>
 import Cesium from 'cesium/Cesium'
+import axios from 'axios' 
 import { Init, add3dTiles, adjust3dTilesPosition, rotationAndScale, change3dTilesPositon, change3dTiles } from './cesium.js'
+import { uploadModelPostion } from '../../../api/modelPosition'
 import 'cesium/Widgets/widgets.css'
 import 'element-ui/lib/theme-chalk/index.css'
 
@@ -154,15 +172,19 @@ export default {
       fullLat: 0,
       fullHeight: 0,
       mat: Cesium.Matrix4.IDENTITY,
-      options: [{
-        value: 'http://202.114.148.160/sogbTo3dtiles/GuanBaHe/tileset.json',
-        label: '关河坝'
-      },
-      {
-        value: 'http://202.114.148.160/sogbTo3dtiles/DongJiaCun/tileset.json',
-        label: '董家村'
-      }],
-      urlValue: ''
+      options: [
+        //   {
+        //   value: 'http://202.114.148.160/sogbTo3dtiles/GuanBaHe/tileset.json',
+        //   label: '关河坝'
+        // },
+        // {
+        //   value: 'http://202.114.148.160/sogbTo3dtiles/DongJiaCun/tileset.json',
+        //   label: '董家村'
+        // }
+      ],
+      urlValue: '',
+      projOptions:[],
+      project:''
     }
   },
   // 监听属性 类似于data概念
@@ -178,26 +200,27 @@ export default {
   // 生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {
     viewer = Init()
-    tileset = add3dTiles(viewer)
-    var _this = this
-    tileset.readyPromise.then(function () {
-      viewer.zoomTo(
-        tileset,
-        new Cesium.HeadingPitchRange(
-          0.5,
-          -0.2,
-          tileset.boundingSphere.radius * 4.0
-        )
-      )
-      resolvedTileset = tileset
-      initCartographic = Cesium.Cartographic.fromCartesian(
-        tileset.boundingSphere.center
-      )
-      _this.fullLong = Cesium.Math.toDegrees(initCartographic.longitude)
-      _this.fullLat = Cesium.Math.toDegrees(initCartographic.latitude)
-      _this.fullHeight = initCartographic.height
-      _this.mat = Cesium.Matrix4.fromArray(tileset.root.transform)
-    })
+    this.createProjectOptions()
+    // tileset = add3dTiles(viewer)
+    // var _this = this
+    // tileset.readyPromise.then(function () {
+    //   viewer.zoomTo(
+    //     tileset,
+    //     new Cesium.HeadingPitchRange(
+    //       0.5,
+    //       -0.2,
+    //       tileset.boundingSphere.radius * 4.0
+    //     )
+    //   )
+    //   resolvedTileset = tileset
+    //   initCartographic = Cesium.Cartographic.fromCartesian(
+    //     tileset.boundingSphere.center
+    //   )
+    //   _this.fullLong = Cesium.Math.toDegrees(initCartographic.longitude)
+    //   _this.fullLat = Cesium.Math.toDegrees(initCartographic.latitude)
+    //   _this.fullHeight = initCartographic.height
+      // _this.mat = Cesium.Matrix4.fromArray(tileset.root.transform)
+    // })
   },
   // 方法集合
   methods: {
@@ -263,8 +286,88 @@ export default {
         _this.scale = 1
         _this.mat = Cesium.Matrix4.fromArray(tileset.root.transform)
       })
-    }
+    },
+    createProjectOptions() {
+      // getAllFlightPath().then(res =>{
+      //   console.log(res)
+      // }).catch(error=>{
+      //   console.log(error)   
+      // })
+      axios.get('http://172.16.7.50:8888/api/irrigationInfor', { 
+        params: {
+          userId:'省',
+          name:'云南'   
+        }     
+      }).then(res => {
+        var _this = this
+        res.data.data.map(proj => {
+        // console.log(res)
 
+          _this.projOptions.push({
+            value: proj.irrigationName,
+            label: proj.irrigationName
+          })
+        })
+      }).catch((error)=> {
+        alert(error)
+      });
+    },
+    changedProject(value) {
+      this.urlValue = ''
+      this.options = []
+      axios.get('http://172.16.7.50:8888/api/getLayer',{
+        params:{ 
+          Pname:value,
+          Ptype:''     
+      }}).then(res => {
+        var _this = this
+        res.data.data.map(model => {
+          console.log(res)
+          if(model.type === "自动单体化"|| model.type === "三维模型")
+          _this.options.push
+          _this.options.push({
+            value: model.url,
+            label: model.layerName,
+            type: model.type
+          })
+        })
+      }).catch((error)=> {
+        alert(error)
+      });
+    },
+    savePosition() {
+      var _this = this
+      console.log(this.options)
+      let layerName = this.options.find(item => {
+        return item.value === _this.urlValue
+      })
+      // debugger
+      
+      let modelPosition = {
+        layerName: layerName.label,
+        height: this.fullHeight,
+        longitude: this.fullLong,
+        latitude: this.fullLat,
+        offsetLong: this.longitude,
+        offsetLat: this.latitude,
+        offsetHeight: this.height,
+        xRotation: this.xRotation,
+        yRotation: this.yRotation,
+        zRotation: this.zRotation,
+        scale: this.scale,
+      }
+      uploadModelPostion(modelPosition).then(res => {
+        _this.$message({
+          message: '上传成功',
+          type: 'success'
+        });
+      }).catch(err =>{
+        _this.$message({
+          message: 'err.message',
+          type: 'error'
+        });
+      })
+    }
   }
 }
 </script>
@@ -289,9 +392,20 @@ export default {
   left: 1%;
   top: 1%;
 }
+#selectedProjectMenu {
+ position: absolute;
+  right: 18%;
+  top: 1%;
+
+}
 #selectedMenu {
   position: absolute;
   right: 5%;
   top: 1%;
+}
+.inputDiv {
+   display: flex;
+    justify-content: space-between;
+
 }
 </style>

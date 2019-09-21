@@ -150,7 +150,7 @@ export function Load3dtiles(url, viewer, arr) {
       tileset._root.transform = mat
     })
   }
-  tileset.show = true
+  tileset.show = false
   return tileset
 }
 

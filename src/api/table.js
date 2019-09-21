@@ -8,6 +8,9 @@ export function getList(params) {
   })
 }
 
+
+
+
 export function getPropertyData() {
   return {
     tableData:[

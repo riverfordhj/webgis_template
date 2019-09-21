@@ -1,5 +1,5 @@
 <template>
-    <div :class="className" :style="{height:height,width:width}"/>
+  <div :class="className" :style="{height:height,width:width}" />
 </template>
 
 <script>
@@ -12,7 +12,8 @@ import json from "../../../../../node_modules/echarts/map/json/province/yunnan.j
 import yunnan_pt from "@/assets/json/yunnan_pt.json";
 import tonghai from "@/assets/json/tonghai.json";
 
-import { getRelatedDataByName } from "@/api/project.js"
+import { getRelatedDataByName } from "@/api/project.js";
+import axios from "axios";
 
 const animationDuration = 6000;
 
@@ -37,7 +38,9 @@ export default {
     };
   },
   mounted() {
-    this.initChart();
+    // this.initChart();
+    this.getProjInfo()
+    this.covertData(tonghai)
     this.__resizeHandler = debounce(() => {
       if (this.chart) {
         this.chart.resize();
@@ -63,7 +66,7 @@ export default {
         this.__resizeHandler();
       }
     },
-    initChart() {
+    initChart(labelArr) {
       console.log(yunnan_pt);
       // echarts.registerMap("yunnan", json);
       this.chart = echarts.init(this.$el, "macarons");
@@ -95,7 +98,7 @@ export default {
 
       this.chart.setOption({
         title: {
-          text: "云南市地图",
+          text: "工程分布图",
           left: "center",
           textStyle: {
             fontWeight: "bold",
@@ -157,7 +160,8 @@ export default {
           {
             type: "scatter",
             coordinateSystem: "geo",
-            data: this.covertData(tonghai),
+            // data: this.covertData(tonghai),
+            data: labelArr,
             symbolSize: function(val) {
               return val[2] * 2;
             },
@@ -184,7 +188,7 @@ export default {
 
       var self = this;
       this.chart.on("click", function(params) {
-        if(params.componentType === "series"){
+        if (params.componentType === "series") {
           // self.$notify({
           //   title: "响应",
           //   message: `值为${params.data.name}`,
@@ -192,11 +196,10 @@ export default {
           //   duration: 2000
           // });
           getRelatedDataByName(params.data.name).then(res => {
-            self.$emit("showDialog", res.data)
-          })
-        }      
+            self.$emit("showDialog", res.data);
+          });
+        }
       });
-
     },
     covertData(json) {
       let res = [];
@@ -206,7 +209,30 @@ export default {
           value: data.geometry.coordinates.concat(data.properties.test)
         });
       });
+      debugger;
       return res;
+    },
+    getProjInfo() {
+      var _this = this
+      let labelArr = [];
+      axios.get('http://172.16.7.50:8888/api/irrigationInfor', { 
+        params: {
+          userId:'省',
+          name:'云南'   
+        }     
+      }).then(res => {
+        var _this = this
+        res.data.data.map(proj => {
+          labelArr.push({
+            name: proj.irrigationName,
+            value: [proj.longitude, proj.latitude , proj.investmentAmount]
+          });
+        })
+        _this.initChart(labelArr)
+      }).catch((error)=> {
+        alert(error)
+      });
+
     }
   }
 };

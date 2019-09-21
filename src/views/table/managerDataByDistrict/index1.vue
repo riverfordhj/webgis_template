@@ -44,8 +44,8 @@
           <el-tab-pane label="空间数据" name="first">
             <Spatial-Data :spatialData="spatialData" :procjectName="procjectName" />
           </el-tab-pane>
-          <el-tab-pane label="文本数据" name="second">
-            <Text-Data />
+          <el-tab-pane label="文本数据"  name="second">
+            <Text-Data :procjectName="procjectName" />
           </el-tab-pane>
           <el-tab-pane label="原始数据" name="third">原始数据</el-tab-pane>
           <el-tab-pane label="项目描述" name="fourth">
@@ -61,7 +61,7 @@
 import { getAllProject, GetProjectByName, getRelatedDataByName, deleteProjectByName } from "@/api/project.js"
 import ProjectMsg from "./components/ProjectMsg/index.vue";
 import SpatialData from "./components/SpatialData/index1.vue";
-import TextData from "./components/TextData/index.vue";
+import TextData from "./components/TextData/index1.vue";
 
 import store from "@/store"
 

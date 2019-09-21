@@ -455,6 +455,7 @@ function adjust3dTilesPosition(
   var h = initCartographic.height + degreeToCartographic.height
 
   var arr = Object.keys(lastCartographic)
+  debugger
   if (arr.length !== 0) {
     long = lastCartographic.longitude + degreeToCartographic.longitude
     lat = lastCartographic.latitude + degreeToCartographic.latitude

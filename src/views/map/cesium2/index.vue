@@ -26,10 +26,12 @@
           </hsc-menu-bar-item>
           <hsc-menu-bar-item label="漫游">
             <hsc-menu-item label="按路线漫游" @click="showFlyCard" />
+            <hsc-menu-item label="绘制漫游路线" @click="drawFlyLine" />
           </hsc-menu-bar-item>
         </hsc-menu-bar>
       </hsc-menu-style-white>
       <property-dialog @setProperty="setProperty" :visible="propertyDialogVisible" />
+      <fly-dialog  @setFlyProperty="setFlyProperty" :visible="flyDialogVisible" />
     </div>
     <div id="tooltip" class="tooltip"></div>
     <!-- <div id="areaTooltip" class="tooltip"></div>
@@ -89,11 +91,15 @@ import widgets from "cesium/Widgets/widgets.css";
 import CesiumNavigation from "cesium-navigation-es6";
 // import toolbar from "./components/toolbar/index.vue";
 import store from "../../../store";
+import { uploadFlightPath } from '../../../api/flightPath'
 import $ from "jquery";
 import tokml from "tokml";
 import GeoJSON from "geojson";
 import { saveAs } from 'file-saver';
+
 import PropertyDialog from './components/propertyDialog/index'
+import flyDialog from './components/flyDialog/index'
+
 import {
   intCesium,
   Load3dtiles,
@@ -113,7 +119,8 @@ export default {
   components: {
     DialogDrag,
     toolbar,
-    PropertyDialog
+    PropertyDialog,
+    flyDialog
     // DropArea
   },
   data() {
@@ -192,7 +199,11 @@ export default {
         value: 'road2',
         label: '路线1'
       }],
-      flyCardOpened: false
+      flyCardOpened: false,
+      //绘制的漫游路线
+      flyLine:[],
+      flyDialogVisible:false,
+      flyDataSource:new Map()
     }
   },
   computed: {
@@ -216,7 +227,8 @@ export default {
     cesiumData = this.$store.getters.cesium_data;
     // debugger
     viewer = intCesium(this, viewer, CesiumNavigation, jsondata);
-    console.log(viewer)
+    // viewer.scene.globe.depthTestAgainstTerrain = false;
+    // console.log(viewer)
     this.creatLayerTree(cesiumData);
   },
   methods: {
@@ -231,6 +243,7 @@ export default {
         };
         var temp = [];
         value.map(col => {
+          console.log(col)
           this.loadLayer(col);
           // debugger
           if (
@@ -302,6 +315,8 @@ export default {
       if (node.level === 3) {
         console.log(layerDataMap)
         let target = layerDataMap.get(data.label);
+        // console.log(target)
+        // debugger
         switch (target.type) {
           case "三维倾斜测量":
           case "BIM":
@@ -393,7 +408,7 @@ export default {
       //   this.projectMessage = {}
       // })
     },
-    loadLayer({ serverAddress, type, name }) {
+    loadLayer({ serverAddress, type, name, position }) {
       var _this = this;
       switch (type) {
         case "JSON":
@@ -422,10 +437,10 @@ export default {
           break;
         case "BIM":
         case "点云":
-          // var arr = position.split(",");
-          // var obj = Load3dtiles(serverAddress, this.cesiumObjs.viewer, arr);
-          // // this.tilesets.set(name, obj);
-          // layerDataMap.set(name, { type: type, obj: obj });
+          var arr = position.split(",");
+          var obj = Load3dtiles(serverAddress, viewer, arr);
+          // this.tilesets.set(name, obj);
+          layerDataMap.set(name, { type: type, obj: obj });
           break;
         default:
           break;
@@ -1109,6 +1124,9 @@ export default {
     showPropertyDialog() {
       this.propertyDialogVisible = !this.propertyDialogVisible
     },
+    showFlyDialog() {
+      this.flyDialogVisible = !this.flyDialogVisible
+    },
     showFlyCard() {
       this.flyCardOpened = true
     },
@@ -1255,6 +1273,119 @@ export default {
       viewer.entities.removeById(flyPointId)
       viewer.scene.preRender.removeEventListener(renderListener)
 
+    },
+    drawFlyLine() {
+      this.clearHandler();
+      this.flyLine = []
+      var _this = this;
+      var PolyLinePrimitive = (function () {
+        function _(positions) {
+          this.options = {
+            name: "线",
+            id: new Date().getTime(),
+            polyline: {
+              show: true,
+              positions: [],
+              material: Cesium.Color.YELLOW,
+              // clampToGround: true,
+              width: 5
+            }
+          };
+          this.positions = positions;
+          this._init();
+        }
+
+        _.prototype._init = function () {
+          var _self = this;
+          var _update = function () {
+            return _self.positions;
+          };
+          //实时更新polyline.positions
+          this.options.polyline.positions = new Cesium.CallbackProperty(
+            _update,
+            false
+          );
+          viewer.entities.add(this.options);
+          _this.flyDataSource.set(this.options.id, this.options);
+        };
+        return _;
+      })();
+
+      this.drawHandler = new Cesium.ScreenSpaceEventHandler(
+        viewer.scene.canvas
+      );
+      var positions = [];
+      var poly = undefined;
+      //鼠标左键单击画点
+      this.drawHandler.setInputAction(function (event) {
+        var cartesian = viewer.scene.pickPosition(event.position);
+        if (positions.length == 0) {
+          positions.push(cartesian.clone());
+        }
+        positions.push(cartesian);
+        console.log(cartesian)
+        _this.flyLine.push(cartesian)
+        // 获取geojson一条线的点位置
+        // var position = _this.transformCoordinate(cartesian)
+        // console.log(position)
+        // var unit = []
+        // for (let i in position) {
+        //   unit.push(position[i])
+        // }
+        // _this.geoData.lines.push(unit)
+
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+      //鼠标移动
+      this.drawHandler.setInputAction(function (event) {
+        var cartesian = viewer.scene.pickPosition(event.endPosition);
+        if (positions.length >= 2) {
+          if (!Cesium.defined(poly)) {
+            poly = new PolyLinePrimitive(positions);
+          } else {
+            if (cartesian != undefined) {
+              positions.pop();
+              cartesian.y += 1 + Math.random();
+              positions.push(cartesian);
+              _this.showTooltip(event.endPosition, `左键单击绘制，右键单击结束`)
+            }
+          }
+        }
+      }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+      //单击鼠标右键结束画线
+      this.drawHandler.setInputAction(function (event) {
+        _this.drawHandler.destroy();
+        _this.drawHandler = null;
+
+        var cartesian = viewer.scene.pickPosition(event.position);
+        var position = _this.transformCoordinate(cartesian)
+        _this.flyLine.push(cartesian)
+        console.log(_this.flyLine[0].x)
+        //显示属性弹窗
+        _this.showFlyDialog()
+        _this.hideTooltip()
+        // console.log(viewer)
+
+      }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+    },
+    setFlyProperty(form) {
+      // console.log(form)
+      var _this = this
+      uploadFlightPath(this.flyLine, form.name, form.description).then(res => {
+        _this.$message({
+          message: '上传成功',
+          type: 'success'
+        });
+      }).catch(err => {
+        _this.$message({
+          message: 'err.message',
+          type: 'error'
+        });
+      })
+      //删除线
+      for (let [key, value] of this.flyDataSource) {
+        viewer.entities.removeById(key);
+      }
+      this.flyLine = []
     }
   }
 }
