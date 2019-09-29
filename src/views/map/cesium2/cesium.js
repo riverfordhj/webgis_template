@@ -1,3 +1,11 @@
+/*
+ * @Descripttion: 
+ * @version: 
+ * @Author: KanMing
+ * @Date: 2019-09-21 18:42:28
+ * @LastEditors: KanMing
+ * @LastEditTime: 2019-09-29 17:44:45
+ */
 import Cesium from 'cesium/Cesium'
 // import $ from 'jquery'
 
@@ -25,6 +33,8 @@ export const intCesium = function(self, viewer, CesiumNavigation, jsondata) {
     navigationHelpButton: false, //是否显示右上角的帮助按钮
     timeline: true,
     shouldAnimate: true,
+    requestRenderMode: true,
+    scene3DOnly: true,
     // baseLayerPicker: true //图层选择器
     InfoBox: false
   })

@@ -1,3 +1,11 @@
+<!--
+ * @Descripttion: 
+ * @version: 
+ * @Author: KanMing
+ * @Date: 2019-09-21 18:42:28
+ * @LastEditors: KanMing
+ * @LastEditTime: 2019-09-29 17:48:46
+ -->
 <template>
   <div>
     <div id="cesiumContainer"></div>
@@ -31,7 +39,7 @@
         </hsc-menu-bar>
       </hsc-menu-style-white>
       <property-dialog @setProperty="setProperty" :visible="propertyDialogVisible" />
-      <fly-dialog  @setFlyProperty="setFlyProperty" :visible="flyDialogVisible" />
+      <fly-dialog @setFlyProperty="setFlyProperty" :visible="flyDialogVisible" />
     </div>
     <div id="tooltip" class="tooltip"></div>
     <!-- <div id="areaTooltip" class="tooltip"></div>
@@ -107,6 +115,7 @@ import {
   FlyToTileSet,
   FlyToJsonLayer
 } from "./cesium";
+import { getHttpVerify } from "../../../utils/tileset-verify"
 import jsondata from "@/assets/json/yunnanshi.json";
 
 var viewer, cesiumData, layerDataMap = new Map();
@@ -201,9 +210,9 @@ export default {
       }],
       flyCardOpened: false,
       //绘制的漫游路线
-      flyLine:[],
-      flyDialogVisible:false,
-      flyDataSource:new Map()
+      flyLine: [],
+      flyDialogVisible: false,
+      flyDataSource: new Map()
     }
   },
   computed: {
@@ -264,7 +273,7 @@ export default {
           value.map(col => {
             if (col["type"] == temp[i]) {
               var level3 = {
-                label: col["name"]
+                label: col["layerName"]
               };
               level2.children.push(level3);
             }
@@ -317,10 +326,16 @@ export default {
         let target = layerDataMap.get(data.label);
         // console.log(target)
         // debugger
+        if (!target) {
+          return
+        }
         switch (target.type) {
           case "三维倾斜测量":
           case "BIM":
           case "点云":
+          case "三维模型":
+          case "手工建模":
+          case "自动单体化":
             FlyToTileSet(target.obj, viewer);
             break;
           case "JSON":
@@ -337,6 +352,9 @@ export default {
           case "三维倾斜测量":
           case "BIM":
           case "点云":
+          case "三维模型":
+          case "手工建模":
+          case "自动单体化":
             value.obj.show = false;
             break;
           case "JSON":
@@ -356,6 +374,9 @@ export default {
             case "三维倾斜测量":
             case "BIM":
             case "点云":
+            case "三维模型":
+            case "手工建模":
+            case "自动单体化":
               target.obj.show = true;
               break;
             case "JSON":
@@ -377,6 +398,9 @@ export default {
           case "三维倾斜测量":
           case "BIM":
           case "点云":
+          case "三维模型":
+          case "手工建模":
+          case "自动单体化":
             viewer.scene.primitives.remove(value.obj)
             break;
           case "JSON":
@@ -408,7 +432,12 @@ export default {
       //   this.projectMessage = {}
       // })
     },
-    loadLayer({ serverAddress, type, name, position }) {
+    loadLayer({ serverAddress, type, layerName, position, url }) {
+      // var serverUrl = serverAddress;
+      if (!serverAddress) {
+        serverAddress = url
+      }
+      // debugger
       var _this = this;
       switch (type) {
         case "JSON":
@@ -416,7 +445,7 @@ export default {
             viewer,
             serverAddress,
             function (datasource) {
-              layerDataMap.set(name, { type: type, obj: datasource });
+              layerDataMap.set(layerName, { type: type, obj: datasource });
             }
           );
           // layerDataMap.set(name, {type:type, obj: obj})
@@ -429,10 +458,14 @@ export default {
           // layerDataMap.set(name, { type: type, obj: obj });
           break;
         case "三维倾斜测量":
+        case "三维模型":
+        case "手工建模":
+        case "自动单体化":
           console.log(viewer)
           var obj = Load3dtiles(serverAddress, viewer);
           // this.tilesets.set(name, obj);
-          layerDataMap.set(name, { type: type, obj: obj });
+          layerDataMap.set(layerName, { type: type, obj: obj });
+          getHttpVerify(layerName, obj)
           console.log(layerDataMap)
           break;
         case "BIM":
@@ -440,7 +473,7 @@ export default {
           var arr = position.split(",");
           var obj = Load3dtiles(serverAddress, viewer, arr);
           // this.tilesets.set(name, obj);
-          layerDataMap.set(name, { type: type, obj: obj });
+          layerDataMap.set(layerName, { type: type, obj: obj });
           break;
         default:
           break;

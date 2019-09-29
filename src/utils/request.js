@@ -7,8 +7,8 @@ import configJson from "../../public/config.json"
 
 // create an axios instance
 const service = axios.create({
-  // baseURL: "http://localhost:42449/api/", // api 的 base_url
-  baseURL: configJson.base_url, // api 的 base_url
+  baseURL: "http://localhost:42449/api/", // api 的 base_url
+  // baseURL: configJson.base_url, // api 的 base_url
   // baseURL: process.env.BASE_API, // api 的 base_url
   timeout: 10000 // request timeout
 })

@@ -1,42 +1,64 @@
+<!--
+ * @Descripttion: 
+ * @version: 
+ * @Author: KanMing
+ * @Date: 2019-03-26 09:36:04
+ * @LastEditors: KanMing
+ * @LastEditTime: 2019-03-26 09:36:04
+ -->
 <template>
-<div id="main">
-  <div id="video">
-  <video muted="muted"  autoplay preload loop="loop">
-    <source src="../../assets/video/earth.mp4" type="video/mp4">
-    您的浏览器不支持 HTML5 video 标签。
-  </video>
-</div>
-<el-card id="form">
-  <el-form>
-    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
-      <h3 class="title">云南市水利勘测设计数据集成管理平台</h3>
-      <el-form-item prop="username">
-        <el-input v-model="loginForm.username" name="username" type="text" auto-complete="on" placeholder="用户名" />
-      </el-form-item>
-      <el-form-item prop="password" id="pwd">
-        <el-input
-          :type="pwdType"
-          v-model="loginForm.password"
-          name="password"
+  <div id="main">
+    <div id="video">
+      <video muted="muted" autoplay preload loop="loop">
+        <source src="../../assets/video/earth.mp4" type="video/mp4" />您的浏览器不支持 HTML5 video 标签。
+      </video>
+    </div>
+    <el-card id="form">
+      <el-form>
+        <el-form
+          ref="loginForm"
+          :model="loginForm"
+          :rules="loginRules"
+          class="login-form"
           auto-complete="on"
-          placeholder="密码"
-          @keyup.enter.native="handleLogin" />
-      </el-form-item>
-      <!-- <el-form-item>
+          label-position="left"
+        >
+          <h3 class="title">云南市水利勘测设计数据集成管理平台</h3>
+          <el-form-item prop="username">
+            <el-input
+              v-model="loginForm.username"
+              name="username"
+              type="text"
+              auto-complete="on"
+              placeholder="用户名"
+            />
+          </el-form-item>
+          <el-form-item prop="password" id="pwd">
+            <el-input
+              :type="pwdType"
+              v-model="loginForm.password"
+              name="password"
+              auto-complete="on"
+              placeholder="密码"
+              @keyup.enter.native="handleLogin"
+            />
+          </el-form-item>
+          <!-- <el-form-item>
         
-      </el-form-item> -->
-      <el-form-item>
-        <el-checkbox v-model="checked">记住密码</el-checkbox>
-        <el-button :loading="loading" type="primary" style="width:100%;" @click.native.prevent="handleLogin">
-          登录
-        </el-button>
-      </el-form-item>
-    </el-form>
-  </el-form>
-</el-card>
-</div>
-
-
+          </el-form-item>-->
+          <el-form-item>
+            <el-checkbox v-model="checked">记住密码</el-checkbox>
+            <el-button
+              :loading="loading"
+              type="primary"
+              style="width:100%;"
+              @click.native.prevent="handleLogin"
+            >登录</el-button>
+          </el-form-item>
+        </el-form>
+      </el-form>
+    </el-card>
+  </div>
 </template>
 
 <script>
@@ -78,7 +100,7 @@ export default {
   },
   watch: {
     $route: {
-      handler: function(route) {
+      handler: function (route) {
         this.redirect = route.query && route.query.redirect;
       },
       immediate: true
@@ -104,10 +126,9 @@ export default {
             .dispatch("LoginByUsername", this.loginForm)
             .then(() => {
               if (self.checked == true) {
-                debugger;
                 //传入账号名，密码，和保存天数3个参数
                 self.setCookie(self.loginForm.username, self.loginForm.password, 7);
-              }else {
+              } else {
                 //清空Cookie
                 self.clearCookie();
               }
@@ -133,7 +154,7 @@ export default {
         "userPwd" + "=" + c_pwd + ";path=/;expires=" + exdate.toGMTString();
     },
     //读取cookie
-    getCookie: function() {
+    getCookie: function () {
       if (document.cookie.length > 0) {
         var arr = document.cookie.split("; "); //这里显示的格式需要切割一下自己可输出看下
         for (var i = 0; i < arr.length; i++) {
@@ -148,7 +169,7 @@ export default {
       }
     },
     //清除cookie
-    clearCookie: function() {
+    clearCookie: function () {
       this.setCookie("", "", -1); //修改2值都为空，天数为负1天就好了
     },
   }
@@ -176,15 +197,13 @@ video {
   right: 5em;
   top: 25%;
   width: 20%;
- 
 }
 
-.title
-{
- text-align: center;
+.title {
+  text-align: center;
 }
 
-#pwd{
+#pwd {
   margin-bottom: 5px;
 }
 </style>

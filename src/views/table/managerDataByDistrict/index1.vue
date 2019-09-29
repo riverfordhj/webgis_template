@@ -1,18 +1,26 @@
+<!--
+ * @Descripttion: 
+ * @version: 
+ * @Author: KanMing
+ * @Date: 2019-09-21 18:42:28
+ * @LastEditors: KanMing
+ * @LastEditTime: 2019-09-21 18:42:28
+ -->
 <template>
   <div>
     <el-container class="container">
-      <el-aside class="aside"  width="250px">        
+      <el-aside class="aside" width="250px">
         <el-scrollbar class="name-container">
-          <div style="padding:20px">         
-            <el-tree 
+          <div style="padding:20px">
+            <el-tree
               ref="tree"
-              :data="treeData" 
+              :data="treeData"
               :props="defaultProps"
-              :load="loadNode" 
-              lazy=""
+              :load="loadNode"
+              lazy
               @node-click="nodeClick"
               :render-content="renderContent"
-              >
+            >
               <!-- <span class="custom-tree-node" slot-scope="{ node, data }">
                 <template v-if="node.level == true">
                   <span>
@@ -34,17 +42,17 @@
                   </el-button>
                   </span>
                 </template>     
-              </span> -->
-            </el-tree>       
+              </span>-->
+            </el-tree>
           </div>
-        </el-scrollbar >            
+        </el-scrollbar>
       </el-aside>
       <el-main class="main" v-loading="mainLoading">
         <el-tabs v-model="activeName" type="border-card">
           <el-tab-pane label="空间数据" name="first">
             <Spatial-Data :spatialData="spatialData" :procjectName="procjectName" />
           </el-tab-pane>
-          <el-tab-pane label="文本数据"  name="second">
+          <el-tab-pane label="文本数据" name="second">
             <Text-Data :procjectName="procjectName" />
           </el-tab-pane>
           <el-tab-pane label="原始数据" name="third">原始数据</el-tab-pane>
@@ -53,8 +61,8 @@
           </el-tab-pane>
         </el-tabs>
       </el-main>
-    </el-container>    
-  </div>   
+    </el-container>
+  </div>
 </template>
 
 <script>
@@ -153,51 +161,51 @@ export default {
     SpatialData,
     TextData
   },
-  created(){
-    
+  created() {
+
   },
-  mounted(){
+  mounted() {
     this.roles = store.getters.roles
   },
   methods: {
     renderContent(h, { node, data, store }) {
       if (node.level === 1) {
-          return (
-            <span class="custom-tree-node">
-              <span> 
-                <svg-icon style="margin-right:8px" icon-class="city" />
-                <span>{node.label}</span>
-              </span>       
+        return (
+          <span class="custom-tree-node">
+            <span>
+              <svg-icon style="margin-right:8px" icon-class="city" />
+              <span>{node.label}</span>
             </span>
-          )        
-        } 
-      if (this.roles.includes("admin") || this.roles.includes("spatialDataManager")) {     
-        if (node.level === 2) {
-          return (
-            <span class="custom-tree-node">
-              <span>
-                <svg-icon style="margin-right:8px" icon-class="project" />
-                <span>{node.label}</span>
-              </span>           
-              <span>
-                <el-button size="mini" type="text" on-click={ (event) => {this.remove(node, data, event)}}>删除</el-button>
-              </span>
-            </span>         
-          );        
-        }   
-      } else { 
-        if (node.level === 2) {
-          return (
-            <span class="custom-tree-node">
-              <span>
-                <svg-icon style="margin-right:8px" icon-class="project" />
-                <span>{node.label}</span>
-              </span>           
-            </span>         
-          );        
-        }   
+          </span>
+        )
       }
-      
+      if (this.roles.includes("admin") || this.roles.includes("spatialDataManager")) {
+        if (node.level === 2) {
+          return (
+            <span class="custom-tree-node">
+              <span>
+                <svg-icon style="margin-right:8px" icon-class="project" />
+                <span>{node.label}</span>
+              </span>
+              <span>
+                <el-button size="mini" type="text" on-click={(event) => { this.remove(node, data, event) }}>删除</el-button>
+              </span>
+            </span>
+          );
+        }
+      } else {
+        if (node.level === 2) {
+          return (
+            <span class="custom-tree-node">
+              <span>
+                <svg-icon style="margin-right:8px" icon-class="project" />
+                <span>{node.label}</span>
+              </span>
+            </span>
+          );
+        }
+      }
+
     },
     loadNode(node, resolve) {
       if (node.level === 0) {
@@ -206,8 +214,8 @@ export default {
 
       if (node.level > 1) return resolve([])
 
-      if(node.level === 1) { // 二级节点
-        this.getChildrenNode(node,resolve)
+      if (node.level === 1) { // 二级节点
+        this.getChildrenNode(node, resolve)
       }
     },
     getChildrenNode(node, resolve) {
@@ -222,16 +230,17 @@ export default {
         this.mainLoading = true
         getRelatedDataByName(node.data.label).then(res => {
           // console.log(res.data)
+          debugger
           this.projectMessage = res.data
           this.spatialData = res.data.SpatialData
-          this.procjectName = res.data.Name       
+          this.procjectName = res.data.Name
           this.mainLoading = false
-          
+
         })
       }
     },
     remove(node, data, event) {
-      event.stopPropagation()  
+      event.stopPropagation()
       deleteProjectByName(data.label).then(res => {
         // console.log(res);
         this.$refs["tree"].remove(node, data)
@@ -268,7 +277,7 @@ export default {
   /* margin-top: 20px; */
   width: 100%;
   height: 100%;
-  
+
   /* padding-top: 10px; */
 }
 
@@ -276,8 +285,7 @@ export default {
   /* background: white; */
   text-align: center;
   overflow: hidden;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
-  
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
 .main {
@@ -286,11 +294,11 @@ export default {
 
 .custom-tree-node {
   flex: 1;
-  display: flex; 
+  display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 14px;
   padding-right: 8px;
-  width: 100%
+  width: 100%;
 }
 </style>

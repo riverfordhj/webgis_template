@@ -1,3 +1,11 @@
+/*
+ * @Descripttion: 
+ * @version: 
+ * @Author: KanMing
+ * @Date: 2019-09-21 18:42:28
+ * @LastEditors: KanMing
+ * @LastEditTime: 2019-09-29 11:15:35
+ */
 import Vue from 'vue'
 import Router from 'vue-router'
 
@@ -117,7 +125,8 @@ export const constantRouterMap = [
       {
         path: 'managerDataByDistrict',
         name: 'managerDataByDistrict',
-        component: () => import('@/views/table/managerDataByDistrict/index1'),
+        // component: () => import('@/views/table/managerDataByDistrict/index1'),
+        component: () => import('@/views/data/project/index'),
         meta: {
           title: '工程数据',
           icon: 'yunnan'
@@ -126,7 +135,7 @@ export const constantRouterMap = [
       {
         path: 'uploadProject',
         name: 'uploadProject',
-        component: () => import('@/views/table/uploaderExcel/index'),
+        component: () => import('@/views/data/uploadProject/index'),
         meta: {
           title: '项目上传',
           icon: 'upload'
@@ -211,7 +220,7 @@ export const asyncRouterMap = [
   {
     path: '/UserManagement',
     component: Layout,
-    redirect: '/UserManagement/modifyPassword',
+    // redirect: '/UserManagement/modifyPassword',
     name: 'UserManagement',
     alwaysShow: true,
     meta: {
@@ -221,35 +230,87 @@ export const asyncRouterMap = [
     },
     children: [
       {
-        path: 'createUser',
-        name: 'createUser',
-        component: () => import('@/views/user/createUser'),
+        path: 'editFrontUser',
+        name: 'editFrontUser',
+        component: () => import('@/views/user/frontUser/index'),
         meta: {
-          title: '创建用户',
-          icon: 'create',
-          roles: ['admin']
+          title: '前端用户',
+          icon: 'webUser',
+          roles: ['admin', 'spatialDataManager']
         }
       },
       {
-        path: 'modifyPassword',
-        name: 'modifyPassword',
-        component: () => import('@/views/user/changePwd'),
+        path: 'backgroundUser',
+        name: 'backgroundUser',
+        component: () => import('@/views/user/backgroundUser/index'),
         meta: {
-          title: '修改密码',
-          icon: 'modifyPsd'
-          // roles: []
-        }
-      },
-      {
-        path: 'role',
-        component: () => import('@/views/user/role'),
-        name: 'RolePermission',
-        meta: {
-          title: '权限分配',
-          icon: 'RolePermission',
+          title: '后端用户',
+          icon: 'background',
           roles: ['admin']
-        }
+        },
+        children: [
+          {
+            path: 'createUser',
+            name: 'createUser',
+            component: () => import('@/views/user/createUser'),
+            meta: {
+              title: '创建用户',
+              icon: 'create',
+              roles: ['admin']
+            }
+          },
+          {
+            path: 'modifyPassword',
+            name: 'modifyPassword',
+            component: () => import('@/views/user/changePwd'),
+            meta: {
+              title: '修改密码',
+              icon: 'modifyPsd'
+              // roles: []
+            }
+          },
+          {
+            path: 'role',
+            component: () => import('@/views/user/editRole'),
+            name: 'RolePermission',
+            meta: {
+              title: '信息修改',
+              icon: 'RolePermission',
+              roles: ['admin']
+            }
+          }
+        ]
       }
+      // {
+      //   path: 'createUser',
+      //   name: 'createUser',
+      //   component: () => import('@/views/user/createUser'),
+      //   meta: {
+      //     title: '创建用户',
+      //     icon: 'create',
+      //     roles: ['admin']
+      //   }
+      // },
+      // {
+      //   path: 'modifyPassword',
+      //   name: 'modifyPassword',
+      //   component: () => import('@/views/user/changePwd'),
+      //   meta: {
+      //     title: '修改密码',
+      //     icon: 'modifyPsd'
+      //     // roles: []
+      //   }
+      // },
+      // {
+      //   path: 'role',
+      //   component: () => import('@/views/user/role'),
+      //   name: 'RolePermission',
+      //   meta: {
+      //     title: '权限分配',
+      //     icon: 'RolePermission',
+      //     roles: ['admin']
+      //   }
+      // }
       // {
       //   path: 'findPassword',
       //   name: 'findPassword',

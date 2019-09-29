@@ -1,12 +1,26 @@
+<!--
+ * @Descripttion: 
+ * @version: 
+ * @Author: KanMing
+ * @Date: 2019-06-30 14:37:24
+ * @LastEditors: KanMing
+ * @LastEditTime: 2019-06-30 14:37:24
+ -->
 <template>
   <div class="app-container">
     <div v-permission="['spatialDataManager']" class="filter-container">
-      <el-button type="primary" @click="handleCreate" >添加</el-button>
+      <el-button type="primary" @click="handleCreate">添加</el-button>
       <el-button type="danger" @click="handleDelete">删除</el-button>
     </div>
-    <el-table v-loading="listLoading" :data="tableData" border style="width: 100%" @selection-change="handleSelectionChange">
+    <el-table
+      v-loading="listLoading"
+      :data="tableData"
+      border
+      style="width: 100%"
+      @selection-change="handleSelectionChange"
+    >
       <el-table-column type="selection" width="55"></el-table-column>
-      <el-table-column prop="name" label="名称" align="center" width="auto"></el-table-column>
+      <el-table-column prop="layerName" label="名称" align="center" width="auto"></el-table-column>
       <el-table-column prop="xzq" label="行政区" align="center"></el-table-column>
       <el-table-column prop="type" label="类型" align="center"></el-table-column>
       <el-table-column prop="format" label="格式" align="center"></el-table-column>
@@ -33,9 +47,9 @@
               </el-dropdown-menu>
             </el-dropdown>
           </template>
-      </el-table-column> -->
+      </el-table-column>-->
       <el-table-column prop="position" label="地理位置" align="center"></el-table-column>
-      <el-table-column prop="serverAddress" label="服务地址 / id" align="center"></el-table-column>
+      <el-table-column prop="url" label="服务地址 / id" align="center"></el-table-column>
       <el-table-column prop="person" label="保存人员" align="center"></el-table-column>
       <el-table-column prop="phone" label="电话" align="center"></el-table-column>
       <el-table-column prop="download" label="数据下载" align="center">
@@ -46,42 +60,51 @@
       </el-table-column>
     </el-table>
 
-    <el-dialog
-      title="添加空间数据"
-      :visible.sync="dialogVisible"
-      width="30%">
-      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="80px" style="width: 400px; margin-left:50px;">
+    <el-dialog title="添加空间数据" :visible.sync="dialogVisible" width="30%">
+      <el-form
+        ref="dataForm"
+        :rules="rules"
+        :model="temp"
+        label-position="left"
+        label-width="80px"
+        style="width: 400px; margin-left:50px;"
+      >
         <el-form-item label="名称" prop="name">
-          <el-input v-model="temp.name" placeholder="请输入数据名称" />
+          <el-input v-model="temp.layerName" placeholder="请输入数据名称" />
         </el-form-item>
         <el-form-item label="行政区" prop="xzq">
-          <el-input v-model="temp.xzq" placeholder="请输入行政区"/>
+          <el-input v-model="temp.xzq" placeholder="请输入行政区" />
         </el-form-item>
         <el-form-item label="类型" prop="type" placeholder="请选择数据类型">
           <el-select v-model="temp.type">
-            <el-option v-for="item in DataType" :key="item.key" :label="item.display_name" :value="item.key"/>
+            <el-option
+              v-for="item in DataType"
+              :key="item.key"
+              :label="item.display_name"
+              :value="item.key"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="格式" prop="format">
-          <el-input v-model="temp.format" placeholder="请输入数据格式"/>
+          <el-input v-model="temp.format" placeholder="请输入数据格式" />
         </el-form-item>
-        <el-form-item label="日期"  prop="date">
-          <el-date-picker v-model="temp.date" type="datetime" placeholder="请选择日期"/>
+        <el-form-item label="日期" prop="date">
+          <el-date-picker v-model="temp.date" type="datetime" placeholder="请选择日期" />
         </el-form-item>
-        <el-form-item label="大小"  prop="size">
-          <el-input v-model="temp.size" placeholder="请输入数据大小"/>
+        <el-form-item label="大小" prop="size">
+          <el-input v-model="temp.size" placeholder="请输入数据大小" />
         </el-form-item>
-        <el-form-item label="状态"  prop="status">
-          <el-input v-model="temp.status" placeholder="请输入数据状态"/>
+        <el-form-item label="状态" prop="status">
+          <el-input v-model="temp.status" placeholder="请输入数据状态" />
         </el-form-item>
-        <el-form-item label="服务地址"  prop="serverAddress">
-          <el-input v-model="temp.serverAddress" placeholder="请输入服务地址"/>
+        <el-form-item label="服务地址" prop="serverAddress">
+          <el-input v-model="temp.url" placeholder="请输入服务地址" />
         </el-form-item>
-        <el-form-item label="保存人员"  prop="person">
-          <el-input v-model="temp.person" placeholder="请输入保存人员"/>
+        <el-form-item label="保存人员" prop="person">
+          <el-input v-model="temp.person" placeholder="请输入保存人员" />
         </el-form-item>
-        <el-form-item label="电话"  prop="phone">
-          <el-input v-model="temp.phone" placeholder="请输入电话号码"/>
+        <el-form-item label="电话" prop="phone">
+          <el-input v-model="temp.phone" placeholder="请输入电话号码" />
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -135,7 +158,7 @@ export default {
       }
     };
   },
-  directives:{
+  directives: {
     permission
   },
   created() {
@@ -154,7 +177,7 @@ export default {
     },
     addResourceToStore(data) {
       // store.dispatch("AddResources", { data });
-      store.dispatch("AddCesiumData", {key:'基础数据', value:[data]});
+      store.dispatch("AddCesiumData", { key: '基础数据', value: [data] });
       this.$notify({
         title: "通知",
         message: "已加载!",
@@ -173,18 +196,18 @@ export default {
       if (this.multipleSelection.length !== 0) {
         deleteSpatialData(this.multipleSelection).then(d => {
           this.tableData = this.tableData
-          .concat(this.multipleSelection)
-          .filter(
-            v =>
-              !this.tableData.includes(v) || !this.multipleSelection.includes(v)
-          );
+            .concat(this.multipleSelection)
+            .filter(
+              v =>
+                !this.tableData.includes(v) || !this.multipleSelection.includes(v)
+            );
           this.$notify({
             title: "通知",
             message: "已删除!",
             type: "success",
             duration: 2000
           });
-        })       
+        })
       } else {
         this.$notify({
           title: "警告",
@@ -212,7 +235,7 @@ export default {
       this.$refs["dataForm"].validate(valid => {
         if (valid) {
           var self = this;
-          addSpatialData(this.temp).then(d =>{
+          addSpatialData(this.temp).then(d => {
             self.tableData.unshift(self.temp);
             this.dialogVisible = false;
             this.$notify({
@@ -221,7 +244,7 @@ export default {
               type: "success",
               duration: 2000
             });
-          })         
+          })
         }
       });
     }
